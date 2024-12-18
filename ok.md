@@ -1,3 +1,4 @@
+---FRONTEND--
 cd frontend
 npm create vite@latest . -- --template react-ts
 Framework: react
@@ -19,21 +20,28 @@ npm install tailwindcss
 npm install @types/node
 npm install clsx tailwind-merge
 npm install @vitejs/plugin-react --save-dev
-npm install @tanstack/react-query    # For data fetching
-npm install axios                    # For HTTP requests
-npm install zustand                  # For state management
-npm install react-router-dom         # For routing
+npm install @tanstack/react-query # For data fetching
+npm install axios # For HTTP requests
+npm install zustand # For state management
+npm install react-router-dom # For routing
 
+---Backend--
 cd backend
+
 # Create virtual environment
+
 python -m venv venv
 
 # Activate virtual environment (Windows)
+
 .\venv\Scripts\activate
+
 # OR for Unix/Mac
+
 source venv/bin/activate
 
 # Install dependencies
+
 pip install fastapi
 pip install uvicorn
 pip install python-multipart
