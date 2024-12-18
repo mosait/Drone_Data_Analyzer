@@ -10,11 +10,9 @@ export const apiClient = axios.create({
   },
 });
 
-// Add interceptors if needed
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-      // Handle global errors here
       return Promise.reject(error);
     }
-  );
+);

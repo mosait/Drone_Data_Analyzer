@@ -1,103 +1,51 @@
 // src/store/useDataStore.ts
-import { create } from 'zustand'
-import type { DroneData } from '../api/types'
-import type { FileInfo } from '../features/dashboard/types'
-import { api } from '../api/endpoints'
+import { create } from 'zustand';
+import { api } from '../api/endpoints';
+import type { DroneData, FileUploadResponse } from '../api/types';
 
 interface DataState {
-  // Data
-  selectedFile: FileInfo | null;
-  recentFiles: FileInfo[];
+  selectedFile: FileUploadResponse | null;
+  recentFiles: FileUploadResponse[];
   currentData: DroneData[] | null;
-  
-  // Status
-  isLoading: boolean;
   error: string | null;
-  
-  // Actions
+  setSelectedFile: (file: FileUploadResponse) => Promise<void>;
+  loadRecentFiles: () => Promise<void>;
   uploadFile: (file: File) => Promise<void>;
-  selectFile: (file: FileInfo) => Promise<void>;
-  clearSelectedFile: () => void;
-  refreshData: () => Promise<void>;
 }
 
 export const useDataStore = create<DataState>((set, get) => ({
-  // Initial state
   selectedFile: null,
   recentFiles: [],
   currentData: null,
-  isLoading: false,
   error: null,
 
-  // Actions
-  uploadFile: async (file: File) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.files.upload(file);
-      
-      const newFile: FileInfo = {
-        id: response.id,
-        filename: response.filename,
-        timestamp: response.timestamp,
-        status: 'success'
-      };
-      
-      set(state => ({ 
-        recentFiles: [newFile, ...state.recentFiles].slice(0, 5),
-        selectedFile: newFile,
-        isLoading: false 
-      }));
-      
-      // Load the data for the new file
-      await get().selectFile(newFile);
-    } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to upload file',
-        isLoading: false 
-      });
-    }
-  },
-
-  selectFile: async (file: FileInfo) => {
-    set({ isLoading: true, error: null, selectedFile: file });
+  setSelectedFile: async (file) => {
     try {
       const data = await api.data.get(file.id);
-      set({ 
-        currentData: data,
-        isLoading: false 
-      });
+      set({ selectedFile: file, currentData: data, error: null });
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to load data',
-        isLoading: false 
-      });
+      set({ error: 'Failed to load file data' });
     }
   },
 
-  clearSelectedFile: () => {
-    set({ 
-      selectedFile: null,
-      currentData: null,
-      error: null 
-    });
+  loadRecentFiles: async () => {
+    try {
+      const files = await api.files.getAll();
+      set({ recentFiles: files, error: null });
+    } catch (error) {
+      set({ error: 'Failed to load recent files' });
+    }
   },
 
-  refreshData: async () => {
-    const { selectedFile } = get();
-    if (!selectedFile) return;
-
-    set({ isLoading: true, error: null });
+  uploadFile: async (file) => {
     try {
-      const data = await api.data.get(selectedFile.id);
-      set({ 
-        currentData: data,
-        isLoading: false 
-      });
+      const response = await api.files.upload(file);
+      if (response.status === 'success') {
+        await get().loadRecentFiles();
+        await get().setSelectedFile(response);
+      }
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to refresh data',
-        isLoading: false 
-      });
+      set({ error: 'Failed to upload file' });
     }
   }
 }));

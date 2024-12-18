@@ -1,7 +1,7 @@
 # backend/app/models/drone_data.py
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 
 class GPSData(BaseModel):
@@ -23,3 +23,12 @@ class DroneData(BaseModel):
 
 class DroneDataList(BaseModel):
     data: List[DroneData]
+
+
+class AnalysisResult(BaseModel):
+    max_altitude: float
+    avg_altitude: float
+    flight_duration: float  # in seconds
+    total_distance: float  # in meters
+    avg_speed: float  # in m/s
+    min_distance: float  # closest approach to any object
