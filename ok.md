@@ -25,7 +25,7 @@ npm install axios # For HTTP requests
 npm install zustand # For state management
 npm install react-router-dom # For routing
 
----Backend--
+BACKEND
 cd backend
 
 # Create virtual environment
