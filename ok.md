@@ -1,4 +1,4 @@
----FRONTEND--
+---FRONTEND---
 cd frontend
 npm create vite@latest . -- --template react-ts
 Framework: react
