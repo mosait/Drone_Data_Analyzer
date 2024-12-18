@@ -1,0 +1,21 @@
+[
+    {
+      "timestamp": "2024-03-09T10:00:00",
+      "radar": {
+        "distance": 100,
+        "velocity": 20,
+        "signalStrength": 85
+      },
+      "sensors": {
+        "temperature": 25,
+        "humidity": 60,
+        "pressure": 1013,
+        "battery": 90
+      },
+      "gps": {
+        "latitude": 48.7758,
+        "longitude": 9.1829,
+        "altitude": 300
+      }
+    }
+  ]
