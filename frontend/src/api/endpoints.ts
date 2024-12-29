@@ -1,6 +1,7 @@
 // src/api/endpoints.ts
 import { apiClient } from './client';
 import type { FileUploadResponse, DroneData, AnalysisResult } from './types';
+import { DirectoryWatchResponse } from '@/api/types';
 
 export const api = {
   files: {
@@ -20,6 +21,18 @@ export const api = {
       return data;
     }
   },
+
+  folders: {
+    setWatchPath: async (path: string): Promise<DirectoryWatchResponse> => {
+      const { data } = await apiClient.post('/api/v1/folders/watch', { path });
+      return data;
+    },
+    
+    scanDirectory: async () => {
+      const { data } = await apiClient.post('/api/v1/folders/scan');
+      return data;
+    }
+},
 
   data: {
     get: async (fileId: string): Promise<DroneData[]> => {

@@ -12,6 +12,16 @@ export interface DroneData {
   };
 }
 
+export interface DirectoryWatchResponse {
+  success: boolean;
+  path: string;
+}
+
+export interface FileSystemError {
+  name: string;
+  message: string;
+}
+
 export interface FileUploadResponse {
   id: string;
   filename: string;

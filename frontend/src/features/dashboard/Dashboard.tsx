@@ -7,6 +7,7 @@ import { Upload, FileType, Download, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { FileUpload } from '@/components/shared/FileUpload';
+import { FolderMonitor } from '@/components/shared/FolderMonitor';
 
 export default function Dashboard() {
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -45,7 +46,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="container mx-auto px-6 py-8 max-w-7xl">
+    <div className="container mx-auto px-6 py-20 max-w-7xl">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2">
@@ -64,6 +65,11 @@ export default function Dashboard() {
                 allowedTypes={['.csv', '.json']}
               />
             </CardContent>
+          </Card>
+
+          {/* Directory Monitor */}
+          <Card className="mb-6">
+            <FolderMonitor onFileFound={handleFileUpload} />
           </Card>
 
           {/* Flight Metrics */}
@@ -111,6 +117,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
+
         {/* Right Column */}
         <div>
           {/* Quick Actions */}
@@ -119,7 +126,7 @@ export default function Dashboard() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors h-[192px] flex flex-col justify-center">
+              <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors h-[250px] flex flex-col justify-center">
                 <div className="space-y-6">
                   <Button
                     className="w-full flex items-center gap-2 justify-center h-11"
