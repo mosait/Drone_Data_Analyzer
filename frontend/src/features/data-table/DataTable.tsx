@@ -1,8 +1,8 @@
 // src/features/data-table/DataTable.tsx
-import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
+import { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../../components/ui/table"
+} from "@/components/ui/table";
 import {
   ColumnDef,
   flexRender,
@@ -21,19 +21,27 @@ import {
   SortingState,
   getFilteredRowModel,
   ColumnFiltersState,
-} from "@tanstack/react-table"
-import { columns } from './components/columns'
-import { useDataStore } from '../../store/useDataStore'
-import { Download, FileUp } from 'lucide-react'
+} from "@tanstack/react-table";
+import { Download, Search } from 'lucide-react';
+import { columns } from './columns';
+import { DroneDataRow } from '@/api/types';
+import { useDataStore } from '@/store/useDataStore';
+import { transformDroneData } from '@/utils/data-transformers';
 
 export default function DataTable() {
-  const { currentData, setCurrentFile } = useDataStore()
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState("")
+  const { currentData } = useDataStore();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+
+  // Transform the data for the table
+  const tableData = useMemo(() => {
+    if (!currentData) return [];
+    return transformDroneData(currentData);
+  }, [currentData]);
 
   const table = useReactTable({
-    data: currentData || [],
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -41,33 +49,60 @@ export default function DataTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       globalFilter,
     },
-  })
+  });
+
+  const handleExport = () => {
+    if (!tableData.length) return;
+    
+    const headers = ['time', 'latitude', 'longitude', 'gps_altitude', 'radar_distance', 'altitude sea level/drone'].join(',');
+    const rows = tableData.map((row: DroneDataRow) => [
+      row.time,
+      row.latitude.toFixed(4),  // Format numbers consistently
+      row.longitude.toFixed(4),
+      row.gps_altitude.toFixed(1),
+      row.radar_distance.toFixed(1),
+      row.altitude.toFixed(1)
+    ].join(',')).join('\n');
+    
+    const csv = `${headers}\n${rows}`;
+    
+    // Download file
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'drone_data.csv';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Data Table</h1>
-        <div className="flex gap-2">
+    <div className="space-y-4 p-8">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle>Flight Data</CardTitle>
           <Button
             variant="outline"
-            onClick={() => {/* Handle export */}}
-            className="flex items-center gap-2"
+            size="sm"
+            className="ml-auto"
+            onClick={handleExport}
+            disabled={!currentData}
           >
-            <Download className="h-4 w-4" />
+            <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Drone Flight Data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center py-4">
+            <Search className="h-4 w-4 mr-2 text-muted-foreground" />
             <Input
               placeholder="Search all columns..."
               value={globalFilter ?? ""}
@@ -75,8 +110,6 @@ export default function DataTable() {
               className="max-w-sm"
             />
           </div>
-        </CardHeader>
-        <CardContent>
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -98,23 +131,20 @@ export default function DataTable() {
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
                       No data available
                     </TableCell>
                   </TableRow>
@@ -148,5 +178,5 @@ export default function DataTable() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

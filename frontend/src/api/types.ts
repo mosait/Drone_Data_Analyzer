@@ -1,15 +1,24 @@
 // src/api/types.ts
 export interface DroneData {
   timestamp: string;
-  altitude: number;
   gps: {
     latitude: number;
     longitude: number;
+    altitude: number;
   };
   radar: {
     distance: number;
-    velocity: number;
   };
+  altitude: number;
+}
+
+export interface DroneDataRow {
+  time: string;
+  latitude: number;
+  longitude: number;
+  gps_altitude: number;
+  radar_distance: number;
+  altitude: number;
 }
 
 export interface DirectoryWatchResponse {

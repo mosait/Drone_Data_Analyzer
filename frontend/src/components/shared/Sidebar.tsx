@@ -43,23 +43,39 @@ const Sidebar = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent/10 hover:text-accent'
-                } group flex flex-col px-3 py-2 rounded-md transition-colors`}
+                className={`
+                  group flex px-3 py-3 rounded-md transition-colors
+                  ${isActive 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  }
+                `}
               >
-                <div className="flex items-center">
-                  <item.icon
-                    className={`${
-                      isActive ? 'text-primary-foreground' : 'text-muted-foreground group-hover:text-accent'
-                    } mr-3 flex-shrink-0 h-5 w-5 transition-colors`}
-                  />
-                  <span>{item.name}</span>
+                <div className="flex items-center w-full">
+                  <div className="flex-shrink-0 h-5 w-5">
+                    <item.icon
+                      className={`
+                        h-full w-full transition-colors
+                        ${isActive 
+                          ? 'text-primary-foreground' 
+                          : 'text-muted-foreground group-hover:text-accent-foreground'
+                        }
+                      `}
+                    />
+                  </div>
+                  <div className="ml-3 flex flex-col -mt-1">
+                    <span className="leading-none">{item.name}</span>
+                    <span className={`
+                      text-xs mt-1 transition-colors
+                      ${isActive 
+                        ? 'text-primary-foreground' 
+                        : 'text-muted-foreground group-hover:text-accent-foreground'
+                      }
+                    `}>
+                      {item.description}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-xs text-muted-foreground mt-1 ml-8">
-                  {item.description}
-                </span>
               </Link>
             );
           })}
