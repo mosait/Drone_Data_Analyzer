@@ -9,13 +9,14 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  ReferenceLine,
   Legend
 } from 'recharts'
 import type { DroneData } from "@/api/types"
 
 interface AltitudeChartProps {
   data: DroneData[]
+  // Will be used when implementing multiple file support
+  fileId?: string
 }
 
 interface TooltipProps {
@@ -24,33 +25,23 @@ interface TooltipProps {
   label?: string;
 }
 
-export const AltitudeChart = ({ data }: AltitudeChartProps) => {
+export const AltitudeChart = ({ data, fileId = '1' }: AltitudeChartProps) => {
+  // Calculate the average once for all data points
+  const avgAltitude = data.reduce((sum, d) => sum + d.altitude, 0) / data.length
+
   // Transform data for the chart
   const chartData = data.map(item => ({
     timestamp: new Date(item.timestamp).toLocaleTimeString(),
-    altitude: item.altitude,
-    smoothAltitude: calculateMovingAverage(data.map(d => d.altitude), 5)[data.indexOf(item)]
+    [`altitude_${fileId}`]: item.altitude,
+    [`avg_${fileId}`]: avgAltitude, // Same average for all points
   }))
 
   // Calculate statistics
   const stats = {
     max: Math.max(...data.map(d => d.altitude)),
     min: Math.min(...data.map(d => d.altitude)),
-    avg: data.reduce((sum, d) => sum + d.altitude, 0) / data.length,
+    avg: avgAltitude,
     change: calculateChange(data.map(d => d.altitude))
-  }
-
-  // Calculate moving average for smoother line
-  function calculateMovingAverage(values: number[], window: number): number[] {
-    const result = []
-    for (let i = 0; i < values.length; i++) {
-      const start = Math.max(0, i - Math.floor(window / 2))
-      const end = Math.min(values.length, i + Math.floor(window / 2) + 1)
-      const windowValues = values.slice(start, end)
-      const avg = windowValues.reduce((sum, val) => sum + val, 0) / windowValues.length
-      result.push(avg)
-    }
-    return result
   }
 
   // Calculate percentage change
@@ -70,7 +61,7 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
     return (
       <div className="bg-background border rounded-lg p-3 shadow-lg">
         <p className="text-sm font-medium mb-1">{label}</p>
-        {payload.map((entry, index) => (
+        {payload.map((entry: any, index: number) => (
           <p 
             key={index} 
             className="text-sm" 
@@ -118,71 +109,51 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <defs>
-              <linearGradient id="altitudeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FF6B6B" stopOpacity={0.2}/>
-                <stop offset="95%" stopColor="#FF6B6B" stopOpacity={0.05}/>
+              <linearGradient id={`colorAltitude${fileId}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              className="stroke-border"
-              vertical={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis 
               dataKey="timestamp"
-              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-              tickLine={{ stroke: 'hsl(var(--border))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
             />
             <YAxis 
-              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-              tickLine={{ stroke: 'hsl(var(--border))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
               label={{ 
                 value: 'Altitude (m)', 
                 angle: -90, 
                 position: 'insideLeft',
-                style: { fill: 'hsl(var(--muted-foreground))', fontSize: 12 }
+                style: { fontSize: 12 }
               }}
             />
-            <Tooltip 
-              content={CustomTooltip}
-              cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }}
-            />
-            <Legend
+            <Tooltip content={CustomTooltip} />
+            <Legend 
               verticalAlign="top"
               height={36}
-              formatter={(value: string) => <span className="text-sm font-medium">{value}</span>}
             />
-            <ReferenceLine 
-              y={stats.avg} 
-              stroke="#4A90E2"
-              strokeDasharray="3 3"
-              label={{
-                value: 'Average',
-                position: 'right',
-                fill: '#4A90E2',
-                fontSize: 12
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="altitude"
-              fill="url(#altitudeGradient)"
-              stroke="#FF6B6B"
-              name="Raw Altitude"
-              dot={false}
-              strokeWidth={2}
-              isAnimationActive={false}
+            <Area 
+              type="monotone" 
+              dataKey={`altitude_${fileId}`}
+              name="Current Altitude"
+              stackId="1"
+              stroke="#8884d8" 
+              fill={`url(#colorAltitude${fileId})`}
+              strokeWidth={1}
             />
             <Line
               type="monotone"
-              dataKey="smoothAltitude"
-              stroke="#4CAF50"
-              strokeWidth={3}
+              dataKey={`avg_${fileId}`}
+              name="Average Altitude"
+              stroke="#82ca9d"
+              strokeWidth={2}
               dot={false}
-              name="Trend"
-              isAnimationActive={false}
+              activeDot={{ r: 4, fill: '#82ca9d' }}
             />
           </ComposedChart>
         </ResponsiveContainer>

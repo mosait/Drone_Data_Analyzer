@@ -36,7 +36,7 @@ const Analysis = () => {
   const durationMinutes = Math.floor(flightDuration / (1000 * 60))
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 mb-24 py-20 ">
       {/* Flight Summary Card */}
       <Card>
         <CardHeader>
@@ -99,7 +99,7 @@ const Analysis = () => {
             </div>
             {/* Full width bottom */}
             <div className="col-span-2">
-              <Card className="h-[600px]">
+              <Card className="h-[700px]">
                 <CardContent className="p-0">
                   <GPSMap data={data} />
                 </CardContent>

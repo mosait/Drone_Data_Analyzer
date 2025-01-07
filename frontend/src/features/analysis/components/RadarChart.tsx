@@ -9,13 +9,13 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  ReferenceLine,
   Legend
 } from 'recharts'
 import type { DroneData } from "@/api/types"
 
 interface RadarChartProps {
   data: DroneData[]
+  fileId?: string
 }
 
 interface TooltipProps {
@@ -24,33 +24,23 @@ interface TooltipProps {
   label?: string;
 }
 
-export const RadarChart = ({ data }: RadarChartProps) => {
+export const RadarChart = ({ data, fileId = '1' }: RadarChartProps) => {
+  // Calculate the average once for all data points
+  const avgDistance = data.reduce((sum, d) => sum + d.radar.distance, 0) / data.length
+
   // Transform data for the chart
   const chartData = data.map(item => ({
     timestamp: new Date(item.timestamp).toLocaleTimeString(),
-    distance: item.radar.distance,
-    smoothDistance: calculateMovingAverage(data.map(d => d.radar.distance), 5)[data.indexOf(item)]
+    [`distance_${fileId}`]: item.radar.distance,
+    [`avg_${fileId}`]: avgDistance, // Same average for all points
   }))
 
   // Calculate statistics
   const stats = {
     max: Math.max(...data.map(d => d.radar.distance)),
     min: Math.min(...data.map(d => d.radar.distance)),
-    avg: data.reduce((sum, d) => sum + d.radar.distance, 0) / data.length,
+    avg: avgDistance,
     change: calculateChange(data.map(d => d.radar.distance))
-  }
-
-  // Calculate moving average for smoother line
-  function calculateMovingAverage(values: number[], window: number): number[] {
-    const result = []
-    for (let i = 0; i < values.length; i++) {
-      const start = Math.max(0, i - Math.floor(window / 2))
-      const end = Math.min(values.length, i + Math.floor(window / 2) + 1)
-      const windowValues = values.slice(start, end)
-      const avg = windowValues.reduce((sum, val) => sum + val, 0) / windowValues.length
-      result.push(avg)
-    }
-    return result
   }
 
   // Calculate percentage change
@@ -70,7 +60,7 @@ export const RadarChart = ({ data }: RadarChartProps) => {
     return (
       <div className="bg-background border rounded-lg p-3 shadow-lg">
         <p className="text-sm font-medium mb-1">{label}</p>
-        {payload.map((entry, index) => (
+        {payload.map((entry: any, index: number) => (
           <p 
             key={index} 
             className="text-sm" 
@@ -118,67 +108,51 @@ export const RadarChart = ({ data }: RadarChartProps) => {
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <defs>
-              <linearGradient id="distanceGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.2}/>
-                <stop offset="95%" stopColor="#6366F1" stopOpacity={0.05}/>
+              <linearGradient id={`colorDistance${fileId}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              className="stroke-border"
-              vertical={false}
-            />
+            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis 
               dataKey="timestamp"
-              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-              tickLine={{ stroke: 'hsl(var(--border))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
             />
             <YAxis 
-              tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-              tickLine={{ stroke: 'hsl(var(--border))' }}
-              axisLine={{ stroke: 'hsl(var(--border))' }}
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
               label={{ 
                 value: 'Distance (m)', 
                 angle: -90, 
                 position: 'insideLeft',
-                style: { fill: 'hsl(var(--muted-foreground))', fontSize: 12 }
+                style: { fontSize: 12 }
               }}
             />
-            <Tooltip 
-              content={<CustomTooltip />}
-              cursor={{ fill: 'hsl(var(--muted))', opacity: 0.1 }}
-            />
-            <Legend
+            <Tooltip content={CustomTooltip} />
+            <Legend 
               verticalAlign="top"
               height={36}
-              formatter={(value: string) => <span className="text-sm font-medium">{value}</span>}
             />
-            <ReferenceLine 
-              y={stats.avg} 
-              stroke="#4A90E2"
-              strokeDasharray="3 3"
-              label={{
-                value: 'Average',
-                position: 'right',
-                fill: '#4A90E2',
-                fontSize: 12
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="distance"
-              stroke="#6366F1"
-              fill="url(#distanceGradient)"
-              name="Distance"
+            <Area 
+              type="monotone" 
+              dataKey={`distance_${fileId}`}
+              name="Current Distance"
+              stackId="1"
+              stroke="#8884d8" 
+              fill={`url(#colorDistance${fileId})`}
+              strokeWidth={1}
             />
             <Line
               type="monotone"
-              dataKey="smoothDistance"
-              stroke="#FF6B6B"
+              dataKey={`avg_${fileId}`}
+              name="Average Distance"
+              stroke="#82ca9d"
               strokeWidth={2}
               dot={false}
-              name="Smooth Distance"
+              activeDot={{ r: 4, fill: '#82ca9d' }}
             />
           </ComposedChart>
         </ResponsiveContainer>
@@ -186,3 +160,5 @@ export const RadarChart = ({ data }: RadarChartProps) => {
     </Card>
   )
 }
+
+export default RadarChart
