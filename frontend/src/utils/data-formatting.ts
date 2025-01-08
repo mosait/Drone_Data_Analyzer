@@ -6,10 +6,6 @@ export const formatDistance = (meters: number): string => {
       : `${(meters/1000).toFixed(2)}km`;
   }
   
-  export const formatVelocity = (mps: number): string => {
-    return `${mps.toFixed(1)} m/s`;
-  }
-  
   export const formatDuration = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);

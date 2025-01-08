@@ -11,11 +11,10 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts'
-import type { DroneData } from "@/api/types"
+import type { ProcessedFlightData } from "@/api/types"
 
 interface RadarChartProps {
-  data: DroneData[]
-  fileId?: string
+  data: ProcessedFlightData;
 }
 
 interface TooltipProps {
@@ -24,54 +23,26 @@ interface TooltipProps {
   label?: string;
 }
 
-export const RadarChart = ({ data, fileId = '1' }: RadarChartProps) => {
-  // Calculate the average once for all data points
-  const avgDistance = data.reduce((sum, d) => sum + d.radar.distance, 0) / data.length
-
-  // Transform data for the chart
-  const chartData = data.map(item => ({
-    timestamp: new Date(item.timestamp).toLocaleTimeString(),
-    [`distance_${fileId}`]: item.radar.distance,
-    [`avg_${fileId}`]: avgDistance, // Same average for all points
-  }))
-
-  // Calculate statistics
-  const stats = {
-    max: Math.max(...data.map(d => d.radar.distance)),
-    min: Math.min(...data.map(d => d.radar.distance)),
-    avg: avgDistance,
-    change: calculateChange(data.map(d => d.radar.distance))
-  }
-
-  // Calculate percentage change
-  function calculateChange(values: number[]): string {
-    if (!values.length) return '0%'
-    const first = values[0]
-    const last = values[values.length - 1]
-    if (first === 0) return '0%'
-    const change = ((last - first) / first) * 100
-    return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`
-  }
-
+export const RadarChart = ({ data }: RadarChartProps) => {
   // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
-    if (!active || !payload || !payload.length) return null
+    if (!active || !payload || !payload.length) return null;
 
     return (
       <div className="bg-background border rounded-lg p-3 shadow-lg">
-        <p className="text-sm font-medium mb-1">{label}</p>
+        <p className="text-sm font-medium mb-1">Time: {label} min</p>
         {payload.map((entry: any, index: number) => (
           <p 
             key={index} 
             className="text-sm" 
-            style={{ color: entry.color }}
+            style={{ color: entry.stroke }}
           >
             {entry.name}: {entry.value.toFixed(1)}m
           </p>
         ))}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <Card>
@@ -81,22 +52,22 @@ export const RadarChart = ({ data, fileId = '1' }: RadarChartProps) => {
         <div className="grid grid-cols-4 gap-4 mt-2">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Maximum</p>
-            <p className="text-2xl font-bold">{stats.max.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{data.summary.radar.max.toFixed(1)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Minimum</p>
-            <p className="text-2xl font-bold">{stats.min.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{data.summary.radar.min.toFixed(1)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Average</p>
-            <p className="text-2xl font-bold">{stats.avg.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{data.summary.radar.avg.toFixed(1)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Change</p>
             <p className={`text-2xl font-bold ${
-              stats.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
+              data.summary.radar.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
             }`}>
-              {stats.change}
+              {data.summary.radar.change}
             </p>
           </div>
         </div>
@@ -104,21 +75,29 @@ export const RadarChart = ({ data, fileId = '1' }: RadarChartProps) => {
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
-            data={chartData}
+            data={data.timeSeries.points}
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
           >
             <defs>
-              <linearGradient id={`colorDistance${fileId}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
+              <linearGradient id="colorDistance" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#0088FE" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#0088FE" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis 
-              dataKey="timestamp"
+              dataKey="duration"
+              type="number"
+              domain={[0, 'auto']}
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
+              label={{ 
+                value: 'Duration (minutes)', 
+                position: 'bottom',
+                offset: 0,
+                style: { fontSize: 12 }
+              }}
             />
             <YAxis 
               tick={{ fontSize: 12 }}
@@ -136,29 +115,30 @@ export const RadarChart = ({ data, fileId = '1' }: RadarChartProps) => {
               verticalAlign="top"
               height={36}
             />
-            <Area 
-              type="monotone" 
-              dataKey={`distance_${fileId}`}
+            <Area
+              type="monotone"
+              dataKey="distance"
               name="Current Distance"
-              stackId="1"
-              stroke="#8884d8" 
-              fill={`url(#colorDistance${fileId})`}
-              strokeWidth={1}
+              stroke="#0088FE"
+              fill="url(#colorDistance)"
+              fillOpacity={1}
+              strokeWidth={2}
+              isAnimationActive={false}
             />
             <Line
               type="monotone"
-              dataKey={`avg_${fileId}`}
+              dataKey="avgDistance"
               name="Average Distance"
               stroke="#82ca9d"
-              strokeWidth={2}
               dot={false}
-              activeDot={{ r: 4, fill: '#82ca9d' }}
+              strokeWidth={2}
+              isAnimationActive={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default RadarChart
+export default RadarChart;

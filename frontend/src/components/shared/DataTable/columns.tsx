@@ -38,11 +38,4 @@ export const columns: ColumnDef<DroneData>[] = [
       return `${row.original.radar.distance.toFixed(2)} m`
     },
   },
-  {
-    accessorFn: (row) => row.radar.velocity,
-    header: "Velocity (m/s)",
-    cell: ({ row }) => {
-      return `${row.original.radar.velocity.toFixed(2)} m/s`
-    },
-  },
 ]

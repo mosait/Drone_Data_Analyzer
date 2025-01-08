@@ -85,7 +85,7 @@ export default function DataTable() {
   };
 
   return (
-    <div className="space-y-4 p-8">
+    <div className="space-y-4 p-8 py-20">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Flight Data</CardTitle>

@@ -90,22 +90,4 @@ export const columns: ColumnDef<DroneData>[] = [
       return `${getValue<number>().toFixed(2)} m`
     },
   },
-  {
-    accessorFn: (row) => row.radar.velocity,
-    id: "radar_velocity",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Velocity (m/s)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ getValue }) => {
-      return `${getValue<number>().toFixed(2)} m/s`
-    },
-  },
 ]

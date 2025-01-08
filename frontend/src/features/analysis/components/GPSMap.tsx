@@ -1,5 +1,5 @@
 // src/features/analysis/components/GPSMap.tsx
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -13,6 +13,8 @@ interface GPSMapProps {
 
 const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
   const [selectedPoint, setSelectedPoint] = useState<DroneData | null>(null);
+  const mapRef = useRef<L.Map>(null);
+  const defaultZoom = 13;
 
   // Calculate path and center
   const flightInfo = useMemo(() => {
@@ -137,15 +139,48 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
         <div className="h-[650px] w-full rounded-lg border overflow-hidden">
           <MapContainer
             center={flightInfo.center}
-            zoom={13}
+            zoom={defaultZoom}
             className="h-full w-full"
             zoomControl={false}
+            ref={mapRef}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <ZoomControl position="topright" />
+            <div className="leaflet-top leaflet-right">
+              <div className="leaflet-control leaflet-bar" style={{ marginTop: "80px" }}>
+                <a
+                  href="#"
+                  role="button"
+                  className="leaflet-control-gps"
+                  title="Center Map"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    mapRef.current?.setView(flightInfo.center, defaultZoom);
+                  }}
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="8"/>
+                    <line x1="12" y1="2" x2="12" y2="4"/>
+                    <line x1="12" y1="20" x2="12" y2="22"/>
+                    <line x1="2" y1="12" x2="4" y2="12"/>
+                    <line x1="20" y1="12" x2="22" y2="12"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
             
             {/* Flight path */}
             <Polyline

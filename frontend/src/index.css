@@ -56,6 +56,25 @@
   color: hsl(var(--accent-foreground)) !important;
 }
 
+.leaflet-control-gps {
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.375rem !important;
+  cursor: pointer;
+}
+
+.leaflet-control-gps:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

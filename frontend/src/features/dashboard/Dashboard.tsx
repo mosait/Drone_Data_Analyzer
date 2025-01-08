@@ -22,6 +22,7 @@ export default function Dashboard() {
     try {
       setUploadProgress(0);
       await uploadFile(file);
+      setUploadProgress(100);
     } catch (error) {
       setError('Failed to upload file');
     }
@@ -83,7 +84,7 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">Max Altitude</p>
                     <p className="text-2xl font-bold">
-                      {Math.max(...currentData.map(d => d.altitude))}m
+                      {Math.max(...currentData.map(d => d.gps.altitude))}m
                     </p>
                   </div>
                   <div>
@@ -91,12 +92,6 @@ export default function Dashboard() {
                     <p className="text-2xl font-bold">
                       {((new Date(currentData[currentData.length - 1].timestamp).getTime() -
                         new Date(currentData[0].timestamp).getTime()) / 60000).toFixed(1)}min
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Average Speed</p>
-                    <p className="text-2xl font-bold">
-                      {(currentData.reduce((sum, d) => sum + d.radar.velocity, 0) / currentData.length).toFixed(1)}m/s
                     </p>
                   </div>
                   <div>
@@ -116,7 +111,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-
 
         {/* Right Column */}
         <div>
@@ -168,7 +162,7 @@ export default function Dashboard() {
                       className="w-full flex items-center justify-between p-2 h-auto"
                       onClick={() => {
                         // Automatically start analysis when file is selected
-                        uploadFile(file);
+                        uploadFile(new File([], file.filename));
                       }}
                     >
                       <div className="flex items-center gap-2">
