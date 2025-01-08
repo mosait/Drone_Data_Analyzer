@@ -57,3 +57,34 @@ export interface AnalysisResult {
     };
   };
 }
+export interface StatsSummary {
+  max: number;
+  min: number;
+  avg: number;
+  change: string;
+}
+
+export interface TimeSeriesPoint {
+  duration: number;
+  altitude: number;
+  distance: number;
+}
+
+export interface ProcessedFlightData {
+  summary: {
+    altitude: StatsSummary;
+    radar: StatsSummary;
+  };
+  timeSeries: {
+    points: TimeSeriesPoint[];
+    averages: {
+      altitude: number;
+      distance: number;
+    };
+  };
+}
+
+// API endpoint response type
+export interface FlightDataResponse {
+  data: ProcessedFlightData;
+}

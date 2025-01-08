@@ -2,14 +2,16 @@
 import pandas as pd
 import numpy as np
 from typing import List, Dict
+from pathlib import Path
 from ..models.drone_data import DroneData, AnalysisResult
+from ..utils.file_handlers import parse_file
+import json
 
 
 class DroneDataProcessor:
     @staticmethod
     def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """Calculate distance between two GPS coordinates"""
-        # Haversine formula implementation
+        """Calculate distance between two GPS coordinates using Haversine formula."""
         R = 6371e3  # Earth's radius in meters
         φ1 = np.radians(lat1)
         φ2 = np.radians(lat2)
@@ -24,15 +26,13 @@ class DroneDataProcessor:
         return R * c
 
     @staticmethod
-    def process_data(data: List[DroneData]) -> AnalysisResult:
-        """Process drone data and generate analysis results"""
-        # Extract timestamps and convert to datetime
+    def process_data(data: List[DroneData]) -> Dict:
+        """Process drone data and generate analysis results."""
+        # Calculate time-based metrics
         timestamps = pd.to_datetime([d.timestamp for d in data])
-
-        # Calculate flight duration
         flight_duration = (timestamps.max() - timestamps.min()).total_seconds()
 
-        # Calculate total distance
+        # Calculate total distance traveled
         total_distance = 0
         for i in range(1, len(data)):
             total_distance += DroneDataProcessor.calculate_distance(
@@ -42,53 +42,75 @@ class DroneDataProcessor:
                 data[i].gps.longitude,
             )
 
-        # Calculate other metrics
-        altitudes = [d.altitude for d in data]
-        velocities = [d.radar.velocity for d in data]
-        distances = [d.radar.distance for d in data]
+        # Calculate metrics
+        altitudes = [d.gps.altitude for d in data]
+        radar_distances = [d.radar.distance for d in data]
 
-        return AnalysisResult(
-            max_altitude=max(altitudes),
-            avg_altitude=sum(altitudes) / len(altitudes),
-            flight_duration=flight_duration,
-            total_distance=total_distance,
-            avg_speed=sum(velocities) / len(velocities),
-            min_distance=min(distances),
-        )
+        # Calculate statistics
+        stats = {
+            "altitude": {
+                "max": max(altitudes),
+                "min": min(altitudes),
+                "avg": sum(altitudes) / len(altitudes),
+                "change": f"{altitudes[-1] - altitudes[0]:+.1f}",
+            },
+            "radar": {
+                "max": max(radar_distances),
+                "min": min(radar_distances),
+                "avg": sum(radar_distances) / len(radar_distances),
+                "change": f"{radar_distances[-1] - radar_distances[0]:+.1f}",
+            },
+        }
 
-
-async def process_file(file_id: str, file_path: str):
-    """Process uploaded file in background"""
-    try:
-        # Read and parse file
-        if file_path.endswith(".csv"):
-            df = pd.read_csv(file_path)
-        else:  # JSON
-            df = pd.read_json(file_path)
-
-        # Convert to DroneData objects
-        drone_data = [
-            DroneData(
-                timestamp=row["timestamp"],
-                altitude=row["altitude"],
-                gps={"latitude": row["latitude"], "longitude": row["longitude"]},
-                radar={"distance": row["distance"], "velocity": row["velocity"]},
+        # Generate time series data
+        time_series = []
+        base_time = timestamps.min()
+        for i, d in enumerate(data):
+            duration = (
+                timestamps[i] - base_time
+            ).total_seconds() / 60  # Convert to minutes
+            time_series.append(
+                {
+                    "duration": duration,
+                    "altitude": d.gps.altitude,
+                    "distance": d.radar.distance,
+                    "avgAltitude": stats["altitude"]["avg"],
+                    "avgDistance": stats["radar"]["avg"],
+                }
             )
-            for _, row in df.iterrows()
-        ]
 
-        # Process data
+        return {
+            "summary": stats,
+            "timeSeries": {
+                "points": time_series,
+                "averages": {
+                    "altitude": stats["altitude"]["avg"],
+                    "distance": stats["radar"]["avg"],
+                },
+            },
+        }
+
+
+async def process_file(file_id: str, file_path: Path) -> None:
+    """Process uploaded file in background."""
+    try:
+        # Parse the file into DroneData objects
+        drone_data = parse_file(file_path)
+
+        # Process the data
         processor = DroneDataProcessor()
-        result = processor.process_data(drone_data)
+        result = processor.process_data(drone_data.data)
 
-        # Store results (implement database storage here)
-        # For now, save to a results file
-        result_path = file_path.replace(".csv", "_results.json").replace(
-            ".json", "_results.json"
-        )
+        # Save results to a file
+        result_path = Path(str(file_path).replace(file_path.suffix, "_results.json"))
         with open(result_path, "w") as f:
-            f.write(result.json())
+            json.dump(result, f, indent=2)
 
     except Exception as e:
         print(f"Error processing file {file_id}: {str(e)}")
-        # Log error and update file status
+        # In a production environment, you might want to:
+        # 1. Log the error properly
+        # 2. Update a file status in database
+        # 3. Notify admins
+        # 4. Create an error report file
+        raise e
