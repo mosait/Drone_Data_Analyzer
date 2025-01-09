@@ -9,16 +9,14 @@ export interface DroneData {
   radar: {
     distance: number;
   };
-  altitude: number;
 }
 
 export interface DroneDataRow {
   time: string;
   latitude: number;
   longitude: number;
-  gps_altitude: number;
-  radar_distance: number;
   altitude: number;
+  radar_distance: number;
 }
 
 export interface DirectoryWatchResponse {
@@ -47,8 +45,6 @@ export interface AnalysisResult {
       maxAltitude: number;
       minAltitude: number;
       totalDistance: number;
-      maxVelocity: number;
-      avgVelocity: number;
       minRadarDistance: number;
     };
     timeRange: {
@@ -72,11 +68,27 @@ export interface TimeSeriesPoint {
 
 export interface ProcessedFlightData {
   summary: {
-    altitude: StatsSummary;
-    radar: StatsSummary;
+    altitude: {
+      max: number;
+      min: number;
+      avg: number;
+      change: string;
+    };
+    radar: {
+      max: number;
+      min: number;
+      avg: number;
+      change: string;
+    };
   };
   timeSeries: {
-    points: TimeSeriesPoint[];
+    points: {
+      duration: number;
+      altitude: number;
+      distance: number;
+      avgAltitude: number;
+      avgDistance: number;
+    }[];
     averages: {
       altitude: number;
       distance: number;

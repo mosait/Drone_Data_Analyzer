@@ -60,12 +60,11 @@ export default function DataTable() {
   const handleExport = () => {
     if (!tableData.length) return;
     
-    const headers = ['time', 'latitude', 'longitude', 'gps_altitude', 'radar_distance', 'altitude sea level/drone'].join(',');
+    const headers = ['time', 'latitude', 'longitude', 'gps_altitude', 'radar_distance'].join(',');
     const rows = tableData.map((row: DroneDataRow) => [
       row.time,
       row.latitude.toFixed(4),  // Format numbers consistently
       row.longitude.toFixed(4),
-      row.gps_altitude.toFixed(1),
       row.radar_distance.toFixed(1),
       row.altitude.toFixed(1)
     ].join(',')).join('\n');
