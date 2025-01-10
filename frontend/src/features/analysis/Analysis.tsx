@@ -1,5 +1,5 @@
 // src/features/analysis/Analysis.tsx
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,36 +8,33 @@ import { useDataStore } from '@/store/useDataStore'
 import { AltitudeChart } from './components/AltitudeChart'
 import { RadarChart } from './components/RadarChart'
 import GPSMap from './components/GPSMap'
-import { api } from '@/api/endpoints'
-import type { ProcessedFlightData } from '@/api/types'
 
 const Analysis = () => {
-  const { currentData, currentFile } = useDataStore();
-  const [processedData, setProcessedData] = useState<ProcessedFlightData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    currentData, 
+    processedData, 
+    selectedFile, 
+    isLoading, 
+    error, 
+    setCurrentFile 
+  } = useDataStore();
 
   useEffect(() => {
-    const fetchProcessedData = async () => {
-      if (!currentFile?.id) return;
-      
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await api.flightData.getProcessedData(currentFile.id);
-        setProcessedData(response.data);
-      } catch (err) {
-        setError('Failed to load flight data');
-        console.error('Error fetching processed data:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (selectedFile && !currentData) {
+      setCurrentFile(selectedFile);
+    }
+  }, [selectedFile, currentData]);
 
-    fetchProcessedData();
-  }, [currentFile?.id]);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-6 py-20">
+        <Loader className="h-6 w-6 animate-spin" />
+        <span className="ml-2">Loading analysis...</span>
+      </div>
+    );
+  }
 
-  if (!currentData || !currentFile) {
+  if (!currentData || !selectedFile) {
     return (
       <div className="p-6 py-20">
         <Alert>
@@ -50,23 +47,12 @@ const Analysis = () => {
     );
   }
 
-  if (isLoading) {
+  if (error) {
     return (
-      <div className="flex items-center justify-center p-6">
-        <Loader className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Loading analysis...</span>
-      </div>
-    );
-  }
-
-  if (error || !processedData) {
-    return (
-      <div className="p-6">
+      <div className="p-6 py-20">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {error || 'Failed to process flight data'}
-          </AlertDescription>
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
     );
@@ -94,12 +80,16 @@ const Analysis = () => {
 
         <TabsContent value="all" className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-6">
-            <div>
-              <AltitudeChart data={processedData} />
-            </div>
-            <div>
-              <RadarChart data={processedData} />
-            </div>
+            {processedData && (
+              <>
+                <div>
+                  <AltitudeChart data={processedData} />
+                </div>
+                <div>
+                  <RadarChart data={processedData} />
+                </div>
+              </>
+            )}
             <div className="col-span-2">
               <Card className="h-[650px]">
                 <GPSMap data={currentData} />
@@ -109,11 +99,11 @@ const Analysis = () => {
         </TabsContent>
 
         <TabsContent value="altitude" className="space-y-4 mt-4">
-          <AltitudeChart data={processedData} />
+          {processedData && <AltitudeChart data={processedData} />}
         </TabsContent>
 
         <TabsContent value="radar" className="space-y-4 mt-4">
-          <RadarChart data={processedData} />
+          {processedData && <RadarChart data={processedData} />}
         </TabsContent>
 
         <TabsContent value="gps" className="space-y-4 mt-4">

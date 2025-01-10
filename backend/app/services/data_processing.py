@@ -1,50 +1,53 @@
 # backend/app/services/data_processing.py
-import pandas as pd
-import numpy as np
-from typing import List, Dict
 from pathlib import Path
-from ..models.drone_data import DroneData, AnalysisResult
-from ..utils.file_handlers import parse_file
 import json
+import logging
+import numpy as np
+from datetime import datetime
+from typing import List, Dict
+from ..core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
-class DroneDataProcessor:
-    @staticmethod
-    def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-        """Calculate distance between two GPS coordinates using Haversine formula."""
-        R = 6371e3  # Earth's radius in meters
-        φ1 = np.radians(lat1)
-        φ2 = np.radians(lat2)
-        Δφ = np.radians(lat2 - lat1)
-        Δλ = np.radians(lon2 - lon1)
+def calculate_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Calculate distance between two GPS coordinates using Haversine formula."""
+    R = 6371e3  # Earth's radius in meters
+    φ1 = np.radians(lat1)
+    φ2 = np.radians(lat2)
+    Δφ = np.radians(lat2 - lat1)
+    Δλ = np.radians(lon2 - lon1)
 
-        a = np.sin(Δφ / 2) * np.sin(Δφ / 2) + np.cos(φ1) * np.cos(φ2) * np.sin(
-            Δλ / 2
-        ) * np.sin(Δλ / 2)
-        c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+    a = np.sin(Δφ / 2) * np.sin(Δφ / 2) + np.cos(φ1) * np.cos(φ2) * np.sin(
+        Δλ / 2
+    ) * np.sin(Δλ / 2)
+    c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
 
-        return R * c
+    return R * c
 
-    @staticmethod
-    def process_data(data: List[DroneData]) -> Dict:
-        """Process drone data and generate analysis results."""
+
+def process_data(data: List[dict]) -> Dict:
+    """Process drone data and generate analysis results."""
+    try:
         # Calculate time-based metrics
-        timestamps = pd.to_datetime([d.timestamp for d in data])
-        flight_duration = (timestamps.max() - timestamps.min()).total_seconds()
+        timestamps = [
+            datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00")) for d in data
+        ]
+        flight_duration = (max(timestamps) - min(timestamps)).total_seconds()
 
         # Calculate total distance traveled
         total_distance = 0
         for i in range(1, len(data)):
-            total_distance += DroneDataProcessor.calculate_distance(
-                data[i - 1].gps.latitude,
-                data[i - 1].gps.longitude,
-                data[i].gps.latitude,
-                data[i].gps.longitude,
+            total_distance += calculate_distance(
+                data[i - 1]["gps"]["latitude"],
+                data[i - 1]["gps"]["longitude"],
+                data[i]["gps"]["latitude"],
+                data[i]["gps"]["longitude"],
             )
 
-        # Calculate metrics
-        altitudes = [d.gps.altitude for d in data]
-        radar_distances = [d.radar.distance for d in data]
+        # Calculate altitude and radar metrics
+        altitudes = [d["gps"]["altitude"] for d in data]
+        radar_distances = [d["radar"]["distance"] for d in data]
 
         # Calculate statistics
         stats = {
@@ -63,8 +66,8 @@ class DroneDataProcessor:
         }
 
         # Generate time series data
+        base_time = min(timestamps)
         time_series = []
-        base_time = timestamps.min()
         for i, d in enumerate(data):
             duration = (
                 timestamps[i] - base_time
@@ -72,8 +75,8 @@ class DroneDataProcessor:
             time_series.append(
                 {
                     "duration": duration,
-                    "altitude": d.gps.altitude,
-                    "distance": d.radar.distance,
+                    "altitude": d["gps"]["altitude"],
+                    "distance": d["radar"]["distance"],
                     "avgAltitude": stats["altitude"]["avg"],
                     "avgDistance": stats["radar"]["avg"],
                 }
@@ -88,29 +91,64 @@ class DroneDataProcessor:
                     "distance": stats["radar"]["avg"],
                 },
             },
+            "metadata": {
+                "duration": flight_duration,
+                "totalDistance": total_distance,
+                "points": len(data),
+            },
         }
+    except Exception as e:
+        logger.error(f"Error processing data: {e}", exc_info=True)
+        raise
 
 
-async def process_file(file_id: str, file_path: Path) -> None:
+async def process_file(file_id: str, file_path: str) -> None:
     """Process uploaded file in background."""
     try:
-        # Parse the file into DroneData objects
-        drone_data = parse_file(file_path)
+        logger.info(f"Processing file {file_id} at {file_path}")
+
+        # Get mapping
+        mapping_file = settings.UPLOAD_DIR / "file_mapping.json"
+        with open(mapping_file, "r") as f:
+            mapping = json.load(f)
+
+        # Update status to processing
+        if file_id in mapping:
+            mapping[file_id]["status"] = "processing"
+            with open(mapping_file, "w") as f:
+                json.dump(mapping, f, indent=2)
+
+        # Read the source file
+        with open(file_path, "r") as f:
+            if file_path.endswith(".json"):
+                data = json.load(f)
+            else:  # CSV handling should be implemented here
+                raise NotImplementedError("CSV processing not implemented")
 
         # Process the data
-        processor = DroneDataProcessor()
-        result = processor.process_data(drone_data.data)
+        processed_data = process_data(data)
 
-        # Save results to a file
-        result_path = Path(str(file_path).replace(file_path.suffix, "_results.json"))
-        with open(result_path, "w") as f:
-            json.dump(result, f, indent=2)
+        # Save processed results
+        results_path = Path(file_path).with_name(Path(file_path).stem + "_results.json")
+        with open(results_path, "w") as f:
+            json.dump(processed_data, f, indent=2)
+
+        # Update mapping with success status
+        if file_id in mapping:
+            mapping[file_id]["status"] = "success"
+            mapping[file_id]["processed"] = True
+            mapping[file_id]["results_path"] = str(results_path)
+            with open(mapping_file, "w") as f:
+                json.dump(mapping, f, indent=2)
+
+        logger.info(f"Successfully processed file {file_id}")
 
     except Exception as e:
-        print(f"Error processing file {file_id}: {str(e)}")
-        # In a production environment, you might want to:
-        # 1. Log the error properly
-        # 2. Update a file status in database
-        # 3. Notify admins
-        # 4. Create an error report file
-        raise e
+        logger.error(f"Error processing file {file_id}: {e}", exc_info=True)
+        # Update mapping with error status
+        if file_id in mapping:
+            mapping[file_id]["status"] = "error"
+            mapping[file_id]["error"] = str(e)
+            with open(mapping_file, "w") as f:
+                json.dump(mapping, f, indent=2)
+        raise

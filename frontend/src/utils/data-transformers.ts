@@ -6,8 +6,7 @@ export const transformDroneData = (data: DroneData[]): DroneDataRow[] => {
     time: item.timestamp,
     latitude: item.gps.latitude,
     longitude: item.gps.longitude,
-    gps_altitude: item.gps.altitude,
-    radar_distance: item.radar.distance,
-    altitude: item.altitude
+    altitude: item.gps.altitude,
+    radar_distance: item.radar.distance
   }));
 };

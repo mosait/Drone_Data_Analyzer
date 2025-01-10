@@ -1,53 +1,80 @@
 // src/features/dashboard/Dashboard.tsx
-import { useState, useEffect } from 'react';
-import { api } from '../../api/endpoints';
-import { useDataStore } from '../../store/useDataStore';
+import { useEffect } from 'react';
+import { api } from '@/api/endpoints';
+import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileType, Download, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
+import { Loader } from 'lucide-react';
 
 export default function Dashboard() {
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const { currentData, uploadFile, recentFiles, selectedFile, loadRecentFiles } = useDataStore();
-  const [error, setError] = useState<string | null>(null);
+  const { 
+    currentData, 
+    uploadFile, 
+    recentFiles, 
+    selectedFile, 
+    loadRecentFiles,
+    isLoading,
+    error,
+    clearError,
+    uploadProgress
+  } = useDataStore();
+
+  // Debug logging
+  console.log('Dashboard Render State:', {
+    isLoading,
+    hasCurrentData: !!currentData,
+    recentFilesCount: recentFiles?.length,
+    hasSelectedFile: !!selectedFile,
+    uploadProgress,
+    error
+  });
 
   useEffect(() => {
-    loadRecentFiles();
+    console.log('Loading recent files...');
+    loadRecentFiles().catch(console.error);
+
+    return () => {
+      console.log('Dashboard unmounting...');
+      clearError();
+    };
   }, []);
 
   const handleFileUpload = async (file: File) => {
+    console.log('Starting file upload...');
     try {
-      setUploadProgress(0);
       await uploadFile(file);
-      setUploadProgress(100);
-    } catch (error) {
-      setError('Failed to upload file');
+      console.log('File upload completed');
+    } catch (err) {
+      console.error('Upload error:', err);
     }
   };
 
-  const handleExport = async (format: 'csv' | 'json') => {
-    if (!selectedFile) return;
-    
-    try {
-      const blob = await api.analysis.export(selectedFile.id, format);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `drone_data_${selectedFile.id}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      setError('Failed to export file');
-    }
-  };
+  if (isLoading) {
+    console.log('Rendering loading state...');
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className="text-center space-y-4">
+          <Loader className="w-8 h-8 animate-spin mx-auto" />
+          <p className="text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
+  console.log('Rendering main dashboard content...');
   return (
-    <div className="container mx-auto px-6 py-20 max-w-7xl">
+    <div className="container mx-auto px-6 py-8">
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column */}
         <div className="lg:col-span-2">
@@ -66,11 +93,6 @@ export default function Dashboard() {
                 allowedTypes={['.csv', '.json']}
               />
             </CardContent>
-          </Card>
-
-          {/* Directory Monitor */}
-          <Card className="mb-6">
-            <FolderMonitor onFileFound={handleFileUpload} />
           </Card>
 
           {/* Flight Metrics */}
@@ -120,26 +142,12 @@ export default function Dashboard() {
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors h-[250px] flex flex-col justify-center">
-                <div className="space-y-6">
-                  <Button
-                    className="w-full flex items-center gap-2 justify-center h-11"
-                    variant="outline"
-                    onClick={() => document.getElementById('file-input')?.click()}
-                  >
-                    <Upload className="h-5 w-5" />
-                    Upload New File
-                  </Button>
-                  <Button
-                    className="w-full flex items-center gap-2 justify-center h-11"
-                    variant="outline"
-                    disabled={!selectedFile}
-                    onClick={() => handleExport('csv')}
-                  >
-                    <Download className="h-5 w-5" />
-                    Export Results
-                  </Button>
-                </div>
+              <div className="space-y-4">
+                <FileUpload 
+                  onFileAccepted={handleFileUpload}
+                  maxSize={10}
+                  allowedTypes={['.csv', '.json']}
+                />
               </div>
             </CardContent>
           </Card>
@@ -160,10 +168,7 @@ export default function Dashboard() {
                       key={file.id}
                       variant="ghost"
                       className="w-full flex items-center justify-between p-2 h-auto"
-                      onClick={() => {
-                        // Automatically start analysis when file is selected
-                        uploadFile(new File([], file.filename));
-                      }}
+                      onClick={() => uploadFile(new File([], file.filename))}
                     >
                       <div className="flex items-center gap-2">
                         <FileType className="h-4 w-4 text-primary" />

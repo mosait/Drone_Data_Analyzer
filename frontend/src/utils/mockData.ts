@@ -33,8 +33,7 @@ const generateFlightPath = (numPoints: number): DroneData[] => {
       },
       radar: {
         distance: distance
-      },
-      altitude: altitude // This is redundant with gps.altitude but matches the interface
+      }
     });
   }
 

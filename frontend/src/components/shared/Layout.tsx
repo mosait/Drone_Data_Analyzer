@@ -9,8 +9,10 @@ const Layout = () => {
       <Navbar />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-6 ml-64">
-          <Outlet />
+        <main className="flex-1 min-h-screen p-6 ml-64">
+          <div className="mt-16"> {/* Add margin-top to account for fixed navbar */}
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

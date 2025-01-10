@@ -1,7 +1,11 @@
 // src/api/endpoints.ts
 import { apiClient } from './client';
-import type { FileUploadResponse, DroneData, AnalysisResult } from './types';
-import { DirectoryWatchResponse } from '@/api/types';
+import type { 
+  FileUploadResponse, 
+  DroneData, 
+  ProcessedFlightData,
+  FlightDataResponse 
+} from './types';
 
 export const api = {
   files: {
@@ -16,38 +20,30 @@ export const api = {
       return data;
     },
     
-    getAll: async () => {
+    getAll: async (): Promise<FileUploadResponse[]> => {
       const { data } = await apiClient.get<FileUploadResponse[]>('/api/v1/files');
       return data;
     }
   },
 
-  folders: {
-    setWatchPath: async (path: string): Promise<DirectoryWatchResponse> => {
-      const { data } = await apiClient.post('/api/v1/folders/watch', { path });
-      return data;
-    },
-    
-    scanDirectory: async () => {
-      const { data } = await apiClient.post('/api/v1/folders/scan');
-      return data;
-    }
-},
-
   data: {
     get: async (fileId: string): Promise<DroneData[]> => {
-      const { data } = await apiClient.get<DroneData[]>(`/api/v1/data/${fileId}`);
-      return data;
+      const { data } = await apiClient.get<{ data: DroneData[] }>(`/api/v1/data/${fileId}`);
+      return data.data; // Note: Backend returns { data: [...] }
+    }
+  },
+
+  flightData: {
+    getProcessedData: async (fileId: string): Promise<ProcessedFlightData> => {
+      const { data } = await apiClient.get<FlightDataResponse>(
+        `/api/v1/data/${fileId}?include_summary=true`
+      );
+      return data.data;
     }
   },
 
   analysis: {
-    analyze: async (fileId: string): Promise<AnalysisResult> => {
-      const { data } = await apiClient.post<AnalysisResult>(`/api/v1/analyze/${fileId}`);
-      return data;
-    },
-    
-    export: async (fileId: string, format: 'csv' | 'json') => {
+    export: async (fileId: string, format: 'csv' | 'json'): Promise<Blob> => {
       const { data } = await apiClient.get(`/api/v1/analyze/${fileId}/export`, {
         params: { format },
         responseType: 'blob'
