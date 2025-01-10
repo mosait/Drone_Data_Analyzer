@@ -183,5 +183,96 @@
     "status": "success",
     "processed": true,
     "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_011540_sample_results.json"
+  },
+  "682c245c-3a19-4b9d-b88d-0dcf380f9d32": {
+    "filename": "20250110_221209_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:12:09.389687",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_221209_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "fc9cbd20-0f83-49ef-a04e-aca7772f8beb": {
+    "filename": "20250110_221244_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:12:44.169985",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_221244_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "bba0b141-9980-4f7a-8a6b-0b78c50b72e0": {
+    "filename": "20250110_221748_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:17:48.403647",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_221748_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "b0ea6f7b-d87e-4d89-94a2-e545e029508a": {
+    "filename": "20250110_221836_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:18:36.188607",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_221836_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "4123c6bf-2072-4b1c-8f71-ce6057e3dbce": {
+    "filename": "20250110_221901_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:19:01.641208",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_221901_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "f2679ef5-acfb-4407-b652-7d0562d1046c": {
+    "filename": "20250110_221930_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:19:30.524510",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_221930_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "9b62935a-e52a-499b-a109-28e48c12cbeb": {
+    "filename": "20250110_222046_drone-data.csv",
+    "original_filename": "drone-data.csv",
+    "timestamp": "2025-01-10T22:20:46.763383",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_222046_drone-data.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "ab2ee1e4-4dc6-4c0a-89f0-3d09bc3197bb": {
+    "filename": "20250110_222059_sample.json",
+    "original_filename": "sample.json",
+    "timestamp": "2025-01-10T22:20:59.450845",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_222059_sample.json",
+    "status": "success",
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250110_222059_sample_results.json"
+  },
+  "1ded660f-17ac-42de-bd06-282974fa8f75": {
+    "filename": "20250111_001813_sample.csv",
+    "original_filename": "sample.csv",
+    "timestamp": "2025-01-11T00:18:13.087586",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_001813_sample.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
+  },
+  "86d0a3c8-9cc0-4259-9ef1-c5facc2812d1": {
+    "filename": "20250111_001818_sample.json",
+    "original_filename": "sample.json",
+    "timestamp": "2025-01-11T00:18:18.935330",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_001818_sample.json",
+    "status": "success",
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_001818_sample_results.json"
+  },
+  "9aae57cd-c653-4cb5-9dc5-cc8be2106243": {
+    "filename": "20250111_002434_sample.json",
+    "original_filename": "sample.json",
+    "timestamp": "2025-01-11T00:24:34.898765",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_002434_sample.json",
+    "status": "success",
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_002434_sample_results.json"
   }
 }

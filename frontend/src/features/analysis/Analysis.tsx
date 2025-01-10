@@ -12,18 +12,20 @@ import GPSMap from './components/GPSMap'
 const Analysis = () => {
   const { 
     currentData, 
+    currentFile, 
     processedData, 
-    selectedFile, 
     isLoading, 
-    error, 
+    error,
+    selectedFile,
     setCurrentFile 
   } = useDataStore();
 
+  // Load data if we have a selected file but no current data
   useEffect(() => {
     if (selectedFile && !currentData) {
       setCurrentFile(selectedFile);
     }
-  }, [selectedFile, currentData]);
+  }, [selectedFile, currentData, setCurrentFile]);
 
   if (isLoading) {
     return (
@@ -34,7 +36,7 @@ const Analysis = () => {
     );
   }
 
-  if (!currentData || !selectedFile) {
+  if (!currentData || !currentFile) {
     return (
       <div className="p-6 py-20">
         <Alert>
@@ -63,18 +65,10 @@ const Analysis = () => {
       <Tabs defaultValue="all" className="space-y-4">
         <div className="border-b">
           <TabsList className="w-full justify-start">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              All Data
-            </TabsTrigger>
-            <TabsTrigger value="altitude" className="flex items-center gap-2">
-              Altitude Analysis
-            </TabsTrigger>
-            <TabsTrigger value="radar" className="flex items-center gap-2">
-              Radar Data
-            </TabsTrigger>
-            <TabsTrigger value="gps" className="flex items-center gap-2">
-              GPS Track
-            </TabsTrigger>
+            <TabsTrigger value="all">All Data</TabsTrigger>
+            <TabsTrigger value="altitude">Altitude Analysis</TabsTrigger>
+            <TabsTrigger value="radar">Radar Data</TabsTrigger>
+            <TabsTrigger value="gps">GPS Track</TabsTrigger>
           </TabsList>
         </div>
 

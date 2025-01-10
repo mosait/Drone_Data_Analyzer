@@ -11,11 +11,27 @@ export interface DroneData {
   };
 }
 
+export interface DroneDataRow {
+  time: string;
+  latitude: number;
+  longitude: number;
+  altitude: number;
+  radar_distance: number;
+}
+
 export interface StatsSummary {
   max: number;
   min: number;
   avg: number;
   change: string;
+}
+
+export interface TimeSeriesPoint {
+  duration: number;
+  altitude: number;
+  distance: number;
+  avgAltitude: number;
+  avgDistance: number;
 }
 
 export interface ProcessedFlightData {
@@ -24,13 +40,7 @@ export interface ProcessedFlightData {
     radar: StatsSummary;
   };
   timeSeries: {
-    points: Array<{
-      duration: number;
-      altitude: number;
-      distance: number;
-      avgAltitude: number;
-      avgDistance: number;
-    }>;
+    points: TimeSeriesPoint[];
     averages: {
       altitude: number;
       distance: number;
@@ -38,8 +48,21 @@ export interface ProcessedFlightData {
   };
 }
 
+// This matches the actual backend response structure
 export interface FlightDataResponse {
-  data: ProcessedFlightData;
+  data: {
+    summary: {
+      altitude: StatsSummary;
+      radar: StatsSummary;
+    };
+    timeSeries: {
+      points: TimeSeriesPoint[];
+      averages: {
+        altitude: number;
+        distance: number;
+      };
+    };
+  };
 }
 
 export interface FileUploadResponse {
@@ -47,4 +70,9 @@ export interface FileUploadResponse {
   filename: string;
   timestamp: string;
   status: 'success' | 'error' | 'processing';
+}
+
+export interface DirectoryWatchResponse {
+  success: boolean;
+  path: string;
 }

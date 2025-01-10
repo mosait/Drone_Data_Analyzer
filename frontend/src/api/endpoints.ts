@@ -29,7 +29,7 @@ export const api = {
   data: {
     get: async (fileId: string): Promise<DroneData[]> => {
       const { data } = await apiClient.get<{ data: DroneData[] }>(`/api/v1/data/${fileId}`);
-      return data.data; // Note: Backend returns { data: [...] }
+      return data.data;
     }
   },
 
@@ -38,7 +38,11 @@ export const api = {
       const { data } = await apiClient.get<FlightDataResponse>(
         `/api/v1/data/${fileId}?include_summary=true`
       );
-      return data.data;
+      // Return the processed data structure that matches ProcessedFlightData type
+      return {
+        summary: data.data.summary,
+        timeSeries: data.data.timeSeries
+      };
     }
   },
 
