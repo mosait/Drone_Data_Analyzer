@@ -14,37 +14,28 @@ const Analysis = () => {
     currentData, 
     currentFile, 
     processedData, 
-    isLoading, 
+    isLoading,
     error,
-    selectedFile,
-    setCurrentFile 
   } = useDataStore();
 
-  // Load data if we have a selected file but no current data
-  useEffect(() => {
-    if (selectedFile && !currentData) {
-      setCurrentFile(selectedFile);
-    }
-  }, [selectedFile, currentData, setCurrentFile]);
+  // Validate data
+  const isDataValid = currentData && currentData.length > 0 && 
+                     currentData[0]?.timestamp && 
+                     currentData[0]?.gps && 
+                     currentData[0]?.radar;
+
+  const isProcessedDataValid = processedData && 
+                              processedData.summary && 
+                              processedData.timeSeries &&
+                              processedData.timeSeries.points;
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-6 py-20">
-        <Loader className="h-6 w-6 animate-spin" />
-        <span className="ml-2">Loading analysis...</span>
-      </div>
-    );
-  }
-
-  if (!currentData || !currentFile) {
-    return (
-      <div className="p-6 py-20">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Please select a flight data file to analyze.
-          </AlertDescription>
-        </Alert>
+        <div className="text-center space-y-4">
+          <Loader className="h-8 w-8 animate-spin mx-auto" />
+          <p className="text-lg">Loading data...</p>
+        </div>
       </div>
     );
   }
@@ -55,6 +46,19 @@ const Analysis = () => {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!currentFile || !isDataValid) {
+    return (
+      <div className="p-6 py-20">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please select a valid flight data file to analyze.
+          </AlertDescription>
         </Alert>
       </div>
     );
@@ -74,7 +78,7 @@ const Analysis = () => {
 
         <TabsContent value="all" className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-6">
-            {processedData && (
+            {isProcessedDataValid && (
               <>
                 <div>
                   <AltitudeChart data={processedData} />
@@ -93,11 +97,11 @@ const Analysis = () => {
         </TabsContent>
 
         <TabsContent value="altitude" className="space-y-4 mt-4">
-          {processedData && <AltitudeChart data={processedData} />}
+          {isProcessedDataValid && <AltitudeChart data={processedData} />}
         </TabsContent>
 
         <TabsContent value="radar" className="space-y-4 mt-4">
-          {processedData && <RadarChart data={processedData} />}
+          {isProcessedDataValid && <RadarChart data={processedData} />}
         </TabsContent>
 
         <TabsContent value="gps" className="space-y-4 mt-4">

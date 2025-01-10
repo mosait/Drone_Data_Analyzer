@@ -44,9 +44,15 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  setUploadProgress: (progress) => set({ uploadProgress: progress }),
+  setUploadProgress: (progress) => {
+    console.log('Setting upload progress:', progress);
+    set({ uploadProgress: progress });
+  },
 
-  reset: () => set(initialState),
+  reset: () => {
+    console.log('Resetting state to initial');
+    set(initialState);
+  },
 
   setCurrentFile: async (file) => {
     console.log('Setting current file:', file.id);
@@ -56,29 +62,37 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       // Load raw data
       console.log('Loading raw data...');
       const rawData = await api.data.get(file.id);
+      console.log('Raw data loaded:', rawData);
+
+      if (!rawData || !Array.isArray(rawData)) {
+        throw new Error('Invalid raw data format received');
+      }
       
       // Load processed data
       console.log('Loading processed data...');
-      const processedResponse = await api.flightData.getProcessedData(file.id);
+      const processedData = await api.flightData.getProcessedData(file.id);
+      console.log('Processed data loaded:', processedData);
+
+      if (!processedData || !processedData.summary) {
+        throw new Error('Invalid processed data format received');
+      }
       
-      console.log('Setting new state...');
       set({ 
         currentFile: file, 
         currentData: rawData, 
-        processedData: processedResponse.data,
-        error: null,
-        isLoading: false
+        processedData: processedData,
+        error: null
       });
-      
-      console.log('Current file set successfully');
+      console.log('State updated successfully');
     } catch (error) {
-      console.error('Error setting current file:', error);
+      console.error('Error in setCurrentFile:', error);
       set({ 
-        error: 'Failed to load file data',
+        error: error instanceof Error ? error.message : 'Failed to load file data',
         currentData: null,
-        processedData: null,
-        isLoading: false
+        processedData: null
       });
+    } finally {
+      set({ isLoading: false });
     }
   },
 
@@ -86,8 +100,8 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
     console.log('Loading recent files...');
     try {
       const files = await api.files.getAll();
+      console.log('Recent files loaded:', files);
       set({ recentFiles: files, error: null });
-      console.log('Recent files loaded:', files.length);
     } catch (error) {
       console.error('Error loading recent files:', error);
       set({ error: 'Failed to load recent files', recentFiles: [] });
@@ -95,7 +109,7 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
   },
 
   uploadFile: async (file: File) => {
-    console.log('Starting file upload...');
+    console.log('Starting file upload:', file.name);
     try {
       set(state => ({ 
         ...initialState,
@@ -106,36 +120,37 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       set({ uploadProgress: 10 });
       console.log('Uploading file...');
       const response = await api.files.upload(file);
+      console.log('Upload response:', response);
       
       set({ uploadProgress: 50 });
-      console.log('File uploaded, loading recent files...');
+      
+      // Load recent files
+      console.log('Loading recent files...');
       await get().loadRecentFiles();
       
       set({ uploadProgress: 75 });
+      
+      // Set current file
       console.log('Setting current file...');
       await get().setCurrentFile(response);
       
       set({ 
         selectedFile: response,
-        uploadProgress: 100,
-        isLoading: false
+        uploadProgress: 100
       });
       
-      console.log('Upload completed successfully');
-      
-      // Reset progress after a delay
-      setTimeout(() => {
-        set({ uploadProgress: 0 });
-      }, 1000);
+      console.log('Upload process completed');
     } catch (error) {
       console.error('Error during upload:', error);
       set({ 
-        error: 'Failed to upload file',
+        error: error instanceof Error ? error.message : 'Failed to upload file',
         currentData: null,
-        processedData: null,
-        isLoading: false,
-        uploadProgress: 0
+        processedData: null
       });
+    } finally {
+      set({ isLoading: false });
+      // Reset progress after a delay
+      setTimeout(() => get().setUploadProgress(0), 1000);
     }
   },
 
@@ -146,7 +161,9 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       await get().setCurrentFile(file);
     } catch (error) {
       console.error('Error selecting file:', error);
-      set({ error: 'Failed to select file', isLoading: false });
+      set({ error: 'Failed to select file' });
+    } finally {
+      set({ isLoading: false });
     }
   }
 }));

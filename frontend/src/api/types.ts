@@ -48,6 +48,10 @@ export interface ProcessedFlightData {
   };
 }
 
+export interface FlightDataResponse {
+  data: ProcessedFlightData;
+}
+
 // This matches the actual backend response structure
 export interface FlightDataResponse {
   data: {

@@ -24,40 +24,45 @@ export default function Dashboard() {
     uploadProgress
   } = useDataStore();
 
-  // Debug logging
-  console.log('Dashboard Render State:', {
-    isLoading,
-    hasCurrentData: !!currentData,
-    recentFilesCount: recentFiles?.length,
-    hasSelectedFile: !!selectedFile,
-    uploadProgress,
-    error
-  });
+  useEffect(() => {
+    loadRecentFiles();
+  }, []);
 
   useEffect(() => {
-    console.log('Loading recent files...');
-    loadRecentFiles().catch(console.error);
-
     return () => {
-      console.log('Dashboard unmounting...');
       clearError();
     };
   }, []);
 
   const handleFileUpload = async (file: File) => {
-    console.log('Starting file upload...');
     try {
       await uploadFile(file);
-      console.log('File upload completed');
-    } catch (err) {
-      console.error('Upload error:', err);
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
+  };
+
+  const handleExport = async (format: 'csv' | 'json') => {
+    if (!selectedFile) return;
+    
+    try {
+      const blob = await api.analysis.export(selectedFile.id, format);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `drone_data_${selectedFile.id}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
     }
   };
 
   if (isLoading) {
-    console.log('Rendering loading state...');
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <div className="text-center space-y-4">
           <Loader className="w-8 h-8 animate-spin mx-auto" />
           <p className="text-lg">Loading...</p>
@@ -66,7 +71,6 @@ export default function Dashboard() {
     );
   }
 
-  console.log('Rendering main dashboard content...');
   return (
     <div className="container mx-auto px-6 py-8">
       {error && (
@@ -101,7 +105,7 @@ export default function Dashboard() {
               <CardTitle>Current Flight Metrics</CardTitle>
             </CardHeader>
             <CardContent>
-              {currentData ? (
+              {Array.isArray(currentData) && currentData.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Max Altitude</p>
@@ -143,11 +147,23 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <FileUpload 
-                  onFileAccepted={handleFileUpload}
-                  maxSize={10}
-                  allowedTypes={['.csv', '.json']}
-                />
+                <Button
+                  className="w-full flex items-center gap-2 justify-center h-11"
+                  variant="outline"
+                  onClick={() => document.getElementById('file-input')?.click()}
+                >
+                  <Upload className="h-5 w-5" />
+                  Upload New File
+                </Button>
+                <Button
+                  className="w-full flex items-center gap-2 justify-center h-11"
+                  variant="outline"
+                  disabled={!selectedFile}
+                  onClick={() => handleExport('csv')}
+                >
+                  <Download className="h-5 w-5" />
+                  Export Results
+                </Button>
               </div>
             </CardContent>
           </Card>

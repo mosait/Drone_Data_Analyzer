@@ -1,0 +1,112 @@
+[
+  {
+    "timestamp": "2024-03-09T10:00:00",
+    "gps": {
+      "latitude": 48.7758,
+      "longitude": 9.1829,
+      "altitude": 100
+    },
+    "radar": {
+      "distance": 80
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:01:00",
+    "gps": {
+      "latitude": 48.7760,
+      "longitude": 9.1832,
+      "altitude": 120
+    },
+    "radar": {
+      "distance": 85
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:02:00",
+    "gps": {
+      "latitude": 48.7763,
+      "longitude": 9.1835,
+      "altitude": 150
+    },
+    "radar": {
+      "distance": 90
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:03:00",
+    "gps": {
+      "latitude": 48.7765,
+      "longitude": 9.1838,
+      "altitude": 180
+    },
+    "radar": {
+      "distance": 95
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:04:00",
+    "gps": {
+      "latitude": 48.7768,
+      "longitude": 9.1841,
+      "altitude": 200
+    },
+    "radar": {
+      "distance": 100
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:05:00",
+    "gps": {
+      "latitude": 48.7770,
+      "longitude": 9.1844,
+      "altitude": 190
+    },
+    "radar": {
+      "distance": 95
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:06:00",
+    "gps": {
+      "latitude": 48.7773,
+      "longitude": 9.1847,
+      "altitude": 170
+    },
+    "radar": {
+      "distance": 90
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:07:00",
+    "gps": {
+      "latitude": 48.7775,
+      "longitude": 9.1850,
+      "altitude": 150
+    },
+    "radar": {
+      "distance": 85
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:08:00",
+    "gps": {
+      "latitude": 48.7778,
+      "longitude": 9.1853,
+      "altitude": 130
+    },
+    "radar": {
+      "distance": 80
+    }
+  },
+  {
+    "timestamp": "2024-03-09T10:09:00",
+    "gps": {
+      "latitude": 48.7780,
+      "longitude": 9.1856,
+      "altitude": 100
+    },
+    "radar": {
+      "distance": 75
+    }
+  }
+]
