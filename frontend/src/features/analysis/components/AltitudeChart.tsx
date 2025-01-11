@@ -24,6 +24,9 @@ interface TooltipProps {
 }
 
 export const AltitudeChart = ({ data }: AltitudeChartProps) => {
+  // Find the max duration from the data
+  const maxDuration = Math.ceil(Math.max(...data.timeSeries.points.map(p => p.duration)));
+
   // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (!active || !payload || !payload.length) return null;
@@ -88,7 +91,7 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
             <XAxis 
               dataKey="duration"
               type="number"
-              domain={[0, 'auto']}
+              domain={[0, maxDuration]}
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}

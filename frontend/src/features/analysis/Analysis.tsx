@@ -1,6 +1,6 @@
 // src/features/analysis/Analysis.tsx
 import { useEffect } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AlertCircle, Loader } from 'lucide-react'
@@ -64,8 +64,53 @@ const Analysis = () => {
     );
   }
 
+  // Calculate duration
+  const startTime = new Date(currentData[0].timestamp);
+  const endTime = new Date(currentData[currentData.length - 1].timestamp);
+  const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
+
+  // Calculate distance
+  const totalDistance = currentData.reduce((sum, d) => sum + d.radar.distance, 0);
+
   return (
-    <div className="space-y-8 p-8 mb-24 py-20">
+    <div className="space-y-8 p-8 mb-24">
+      {/* Summary Section */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Duration</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{duration.toFixed(1)} min</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Max Altitude</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{processedData?.summary.altitude.max.toFixed(1)}m</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Distance</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{(totalDistance / 1000).toFixed(2)}km</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Data Points</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{currentData.length}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabs Section */}
       <Tabs defaultValue="all" className="space-y-4">
         <div className="border-b">
           <TabsList className="w-full justify-start">
