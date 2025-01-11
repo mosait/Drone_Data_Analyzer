@@ -70,7 +70,7 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
             <p className={`text-2xl font-bold ${
               data.summary.altitude.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
             }`}>
-              {data.summary.altitude.change}
+              {data.summary.altitude.change}%
             </p>
           </div>
         </div>

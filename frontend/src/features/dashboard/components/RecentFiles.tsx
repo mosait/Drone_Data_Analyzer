@@ -1,55 +1,54 @@
 // src/features/dashboard/components/RecentFiles.tsx
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { FileType, Clock } from 'lucide-react';
-import { useDataStore } from '../../../store/useDataStore';
+import { useDataStore } from '@/store/useDataStore';
 
 export const RecentFiles = () => {
   const { recentFiles, selectedFile, selectFile } = useDataStore();
 
-  if (!recentFiles?.length) {
-    return null;
-  }
+  const handleFileSelect = (file: any) => {
+    // Don't upload a new file, just select the existing one
+    selectFile(file);
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Files</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Recent Files
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-2">
-          {recentFiles.map(file => (
-            <li 
-              key={file.id} 
-              className={`flex items-center justify-between p-3 rounded-md transition-colors
-                ${selectedFile?.id === file.id ? 'bg-primary/10' : 'bg-accent/10 hover:bg-accent/20'}`}
-            >
-              <div className="flex items-center gap-2">
-                <FileType className="h-4 w-4 text-primary" />
-                <span>{file.filename}</span>
-                {file.analyzed && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    Analyzed
+        {recentFiles && recentFiles.length > 0 ? (
+          <div className="space-y-4">
+            {recentFiles.map((file) => (
+              <Button
+                key={file.id}
+                variant="ghost"
+                className={`w-full flex items-center justify-between p-2 h-auto ${
+                  selectedFile?.id === file.id ? 'bg-primary/10' : ''
+                }`}
+                onClick={() => handleFileSelect(file)}
+              >
+                <div className="flex items-center gap-2">
+                  <FileType className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium truncate">
+                    {file.filename}
                   </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={selectedFile?.id === file.id ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => selectFile(file)}
-                  className="flex items-center gap-1"
-                >
-                  <Clock className="h-4 w-4" />
-                  {selectedFile?.id === file.id ? 'Selected' : 'Load'}
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {new Date(file.timestamp).toLocaleString()}
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(file.timestamp).toLocaleDateString()}
                 </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </Button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-32">
+            <p className="text-sm text-muted-foreground">No recent files</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

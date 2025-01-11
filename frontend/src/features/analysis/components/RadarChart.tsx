@@ -70,7 +70,7 @@ export const RadarChart = ({ data }: RadarChartProps) => {
             <p className={`text-2xl font-bold ${
               data.summary.radar.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
             }`}>
-              {data.summary.radar.change}
+              {data.summary.radar.change}%
             </p>
           </div>
         </div>

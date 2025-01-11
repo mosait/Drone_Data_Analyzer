@@ -134,7 +134,7 @@ const Analysis = () => {
               </>
             )}
             <div className="col-span-2">
-              <Card className="h-[650px]">
+              <Card className="h-[750px]">
                 <GPSMap data={currentData} />
               </Card>
             </div>

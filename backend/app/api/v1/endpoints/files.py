@@ -36,18 +36,6 @@ async def upload_file(
 ) -> JSONResponse:
     """Upload a drone data file (CSV or JSON)."""
     try:
-        # Validate file size
-        file.file.seek(0, 2)
-        file_size = file.file.tell()
-        file.file.seek(0)
-        if file_size > settings.MAX_UPLOAD_SIZE:
-            raise HTTPException(status_code=413, detail="File too large")
-
-        # Validate extension
-        file_extension = Path(file.filename).suffix.lower()
-        if file_extension not in settings.ALLOWED_EXTENSIONS:
-            raise HTTPException(status_code=415, detail="Unsupported file type")
-
         # Generate timestamp and UUID
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_id = str(uuid.uuid4())
@@ -65,16 +53,13 @@ async def upload_file(
         # Update file mapping
         mapping = get_file_mapping()
         mapping[file_id] = {
-            "filename": filename,
-            "original_filename": original_filename,
+            "filename": original_filename,
             "timestamp": datetime.now().isoformat(),
             "path": str(file_path),
-            "status": "success",
+            "id": file_id,
+            "status": "pending",
         }
         save_file_mapping(mapping)
-
-        # Start background processing
-        background_tasks.add_task(process_file, file_id, str(file_path))
 
         # Create response
         response_data = {
@@ -84,10 +69,11 @@ async def upload_file(
             "status": "success",
         }
 
+        # Start background processing
+        background_tasks.add_task(process_file, file_id, str(file_path))
+
         return JSONResponse(status_code=200, content=response_data)
 
-    except HTTPException as e:
-        raise e
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -104,11 +90,13 @@ async def list_files() -> List[dict]:
 
         for file_id, file_info in mapping.items():
             # Check if file still exists
-            if os.path.exists(file_info["path"]):
+            if Path(file_info["path"]).exists():
                 files.append(
                     {
                         "id": file_id,
-                        "filename": file_info["original_filename"],
+                        "filename": file_info[
+                            "filename"
+                        ],  # Changed from original_filename
                         "timestamp": file_info["timestamp"],
                         "status": file_info.get("status", "success"),
                     }
@@ -133,15 +121,12 @@ async def get_file_info(file_id: str):
             raise HTTPException(status_code=404, detail="File not found")
 
         file_info = mapping[file_id]
-        if not os.path.exists(file_info["path"]):
-            # Remove from mapping if file no longer exists
-            mapping.pop(file_id)
-            save_file_mapping(mapping)
+        if not Path(file_info["path"]).exists():
             raise HTTPException(status_code=404, detail="File not found")
 
         return {
             "id": file_id,
-            "filename": file_info["original_filename"],
+            "filename": file_info["filename"],
             "timestamp": file_info["timestamp"],
             "status": file_info.get("status", "success"),
         }

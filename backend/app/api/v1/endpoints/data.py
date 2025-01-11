@@ -9,11 +9,39 @@ from datetime import datetime
 import logging
 from ....core.config import settings
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def get_file_mapping():
+    """Get or create the file ID mapping."""
+    mapping_file = settings.UPLOAD_DIR / "file_mapping.json"
+    try:
+        if mapping_file.exists():
+            with open(mapping_file, "r") as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Error reading mapping file: {e}")
+    return {}
+
+
+def get_file_path(file_id: str) -> Path:
+    """Get file path from mapping."""
+    logger.debug(f"Getting file path for ID: {file_id}")
+    mapping = get_file_mapping()
+
+    if file_id not in mapping:
+        logger.error(f"File ID not found in mapping: {file_id}")
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_path = Path(mapping[file_id]["path"])
+    if not file_path.exists():
+        logger.error(f"File not found at path: {file_path}")
+        raise HTTPException(status_code=404, detail="File not found")
+
+    logger.debug(f"Found file at: {file_path}")
+    return file_path
 
 
 def read_file_content(file_path: Path) -> List[dict]:
@@ -21,9 +49,6 @@ def read_file_content(file_path: Path) -> List[dict]:
     logger.debug(f"Reading file: {file_path}")
 
     try:
-        if not file_path.exists():
-            raise HTTPException(status_code=404, detail="File not found")
-
         if file_path.suffix.lower() == ".json":
             logger.debug("Processing JSON file")
             with open(file_path, "r") as f:
@@ -54,79 +79,14 @@ def read_file_content(file_path: Path) -> List[dict]:
             return data
 
         else:
+            logger.error(f"Unsupported file format: {file_path.suffix}")
             raise HTTPException(
                 status_code=400, detail=f"Unsupported file format: {file_path.suffix}"
             )
 
-    except (json.JSONDecodeError, csv.Error) as e:
-        logger.error(f"File parsing error: {e}")
-        raise HTTPException(status_code=400, detail=f"File parsing error: {str(e)}")
     except Exception as e:
         logger.error(f"Error reading file: {e}")
-        raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
-
-
-def get_file_path(file_id: str) -> Path:
-    """Get file path from mapping."""
-    logger.debug(f"Getting file path for ID: {file_id}")
-
-    # Get the mapping file
-    mapping_file = settings.UPLOAD_DIR / "file_mapping.json"
-    if mapping_file.exists():
-        with open(mapping_file, "r") as f:
-            mapping = json.load(f)
-            if file_id in mapping:
-                file_path = Path(mapping[file_id]["path"])
-                if file_path.exists():
-                    logger.debug(f"Found file at: {file_path}")
-                    return file_path
-
-    # Fallback to searching by ID prefix
-    for file_path in settings.UPLOAD_DIR.glob(f"*{file_id}*"):
-        if file_path.is_file():
-            logger.debug(f"Found file at: {file_path}")
-            return file_path
-
-    logger.error(f"No file found for ID: {file_id}")
-    raise HTTPException(status_code=404, detail="File not found")
-
-
-def calculate_time_series(data: List[dict]) -> dict:
-    """Calculate time series points."""
-    try:
-        points = []
-        timestamps = [
-            datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00")) for d in data
-        ]
-        start_time = min(timestamps)
-
-        # Calculate averages
-        altitude_values = [d["gps"]["altitude"] for d in data]
-        distance_values = [d["radar"]["distance"] for d in data]
-        avg_altitude = sum(altitude_values) / len(altitude_values)
-        avg_distance = sum(distance_values) / len(distance_values)
-
-        for i, d in enumerate(data):
-            time = datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
-            duration = (time - start_time).total_seconds() / 60  # Convert to minutes
-
-            points.append(
-                {
-                    "duration": duration,
-                    "altitude": d["gps"]["altitude"],
-                    "distance": d["radar"]["distance"],
-                    "avgAltitude": avg_altitude,
-                    "avgDistance": avg_distance,
-                }
-            )
-
-        return {
-            "points": points,
-            "averages": {"altitude": avg_altitude, "distance": avg_distance},
-        }
-    except Exception as e:
-        logger.error(f"Error calculating time series: {e}")
-        raise
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{file_id}")
@@ -140,13 +100,12 @@ async def get_data(
     logger.info(f"Getting data for file ID: {file_id}")
 
     try:
-        # Get and read the file
+        # Get file path from mapping
         file_path = get_file_path(file_id)
+
+        # Read and parse the file
         data = read_file_content(file_path)
         logger.debug(f"Read {len(data)} records")
-
-        if not data:
-            raise HTTPException(status_code=404, detail="No data found in file")
 
         # Apply time filters if provided
         if start_time or end_time:
@@ -161,17 +120,14 @@ async def get_data(
                     continue
                 filtered_data.append(item)
             data = filtered_data
+            logger.debug(f"Filtered to {len(data)} records")
 
         if not data:
-            raise HTTPException(
-                status_code=404, detail="No data found for specified time range"
-            )
+            raise HTTPException(status_code=404, detail="No data found in file")
 
-        response_data = {
-            "data": data,
-        }
+        response_data = {"data": data}
 
-        # Calculate summary if requested
+        # Add summary if requested
         if include_summary:
             altitude_values = [d["gps"]["altitude"] for d in data]
             distance_values = [d["radar"]["distance"] for d in data]
@@ -191,10 +147,38 @@ async def get_data(
                 },
             }
 
-            # Calculate time series
-            response_data["timeSeries"] = calculate_time_series(data)
+            # Add time series data
+            timestamps = [
+                datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
+                for d in data
+            ]
+            start_time = min(timestamps)
 
-        logger.debug("Returning response data")
+            time_series_points = []
+            for i, d in enumerate(data):
+                current_time = datetime.fromisoformat(
+                    d["timestamp"].replace("Z", "+00:00")
+                )
+                duration = (current_time - start_time).total_seconds() / 60
+
+                time_series_points.append(
+                    {
+                        "duration": duration,
+                        "altitude": d["gps"]["altitude"],
+                        "distance": d["radar"]["distance"],
+                        "avgAltitude": response_data["summary"]["altitude"]["avg"],
+                        "avgDistance": response_data["summary"]["radar"]["avg"],
+                    }
+                )
+
+            response_data["timeSeries"] = {
+                "points": time_series_points,
+                "averages": {
+                    "altitude": response_data["summary"]["altitude"]["avg"],
+                    "distance": response_data["summary"]["radar"]["avg"],
+                },
+            }
+
         return JSONResponse(content=response_data)
 
     except HTTPException:

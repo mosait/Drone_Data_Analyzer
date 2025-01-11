@@ -14,7 +14,7 @@ interface GPSMapProps {
 const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
   const [selectedPoint, setSelectedPoint] = useState<DroneData | null>(null);
   const mapRef = useRef<L.Map>(null);
-  const defaultZoom = 13;
+  const defaultZoom = 15;
 
   // Calculate path and center
   const flightInfo = useMemo(() => {
