@@ -1,5 +1,5 @@
 // src/features/data-table/DataTable.tsx
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,26 +22,21 @@ import {
   getFilteredRowModel,
   ColumnFiltersState,
 } from "@tanstack/react-table";
-import { Download, Search } from 'lucide-react';
+import { Download, Search, Loader } from 'lucide-react';
 import { columns } from './columns';
-import { DroneDataRow } from '@/api/types';
+import { DroneData } from '@/api/types';
 import { useDataStore } from '@/store/useDataStore';
-import { transformDroneData } from '@/utils/data-transformers';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 export default function DataTable() {
-  const { currentData } = useDataStore();
+  const { currentData, isLoading, error } = useDataStore();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
 
-  // Transform the data for the table
-  const tableData = useMemo(() => {
-    if (!currentData) return [];
-    return transformDroneData(currentData);
-  }, [currentData]);
-
   const table = useReactTable({
-    data: tableData,
+    data: currentData || [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -58,18 +53,22 @@ export default function DataTable() {
   });
 
   const handleExport = () => {
-    if (!tableData.length) return;
+    if (!currentData?.length) return;
     
-    const headers = ['time', 'latitude', 'longitude', 'gps_altitude', 'radar_distance'].join(',');
-    const rows = tableData.map((row: DroneDataRow) => [
-      row.time,
-      row.latitude.toFixed(4),  // Format numbers consistently
-      row.longitude.toFixed(4),
-      row.radar_distance.toFixed(1),
-      row.altitude.toFixed(1)
-    ].join(',')).join('\n');
+    // Create CSV content
+    const headers = ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Radar Distance (m)'];
+    const rows = currentData.map(row => [
+      new Date(row.timestamp).toLocaleString(),
+      row.gps?.latitude.toFixed(6),
+      row.gps?.longitude.toFixed(6),
+      row.gps?.altitude.toFixed(1),
+      row.radar?.distance.toFixed(1)
+    ]);
     
-    const csv = `${headers}\n${rows}`;
+    const csv = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
     
     // Download file
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -83,6 +82,41 @@ export default function DataTable() {
     document.body.removeChild(a);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <Loader className="w-8 h-8 animate-spin mx-auto" />
+          <p className="text-lg">Loading data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 py-20">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!currentData || currentData.length === 0) {
+    return (
+      <div className="p-6 py-20">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Please select a flight data file to view the data table.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 p-8 py-20">
       <Card>
@@ -93,7 +127,6 @@ export default function DataTable() {
             size="sm"
             className="ml-auto"
             onClick={handleExport}
-            disabled={!currentData}
           >
             <Download className="mr-2 h-4 w-4" />
             Export CSV

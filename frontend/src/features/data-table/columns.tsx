@@ -2,11 +2,11 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
-import { DroneDataRow } from '@/api/types';
+import { DroneData } from '@/api/types';
 
-export const columns: ColumnDef<DroneDataRow>[] = [
+export const columns: ColumnDef<DroneData>[] = [
   {
-    accessorKey: "time",
+    accessorKey: "timestamp",
     header: ({ column }) => {
       return (
         <Button
@@ -20,12 +20,12 @@ export const columns: ColumnDef<DroneDataRow>[] = [
     },
     cell: ({ row }) => {
       // Format the timestamp to be more readable
-      const date = new Date(row.getValue("time"));
-      return date.toLocaleTimeString();
+      const timestamp = row.getValue<string>("timestamp");
+      return timestamp ? new Date(timestamp).toLocaleTimeString() : 'N/A';
     },
   },
   {
-    accessorKey: "latitude",
+    accessorKey: "gps.latitude",
     header: ({ column }) => {
       return (
         <Button
@@ -38,11 +38,12 @@ export const columns: ColumnDef<DroneDataRow>[] = [
       )
     },
     cell: ({ row }) => {
-      return row.getValue<number>("latitude").toFixed(4);
+      const latitude = row.original.gps?.latitude;
+      return latitude !== undefined ? latitude.toFixed(6) : 'N/A';
     },
   },
   {
-    accessorKey: "longitude",
+    accessorKey: "gps.longitude",
     header: ({ column }) => {
       return (
         <Button
@@ -55,28 +56,30 @@ export const columns: ColumnDef<DroneDataRow>[] = [
       )
     },
     cell: ({ row }) => {
-      return row.getValue<number>("longitude").toFixed(4);
+      const longitude = row.original.gps?.longitude;
+      return longitude !== undefined ? longitude.toFixed(6) : 'N/A';
     },
   },
   {
-    accessorKey: "gps_altitude",
+    accessorKey: "gps.altitude",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          GPS Altitude (m)
+          Altitude (m)
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
     cell: ({ row }) => {
-      return `${row.getValue<number>("gps_altitude").toFixed(1)} m`;
+      const altitude = row.original.gps?.altitude;
+      return altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A';
     },
   },
   {
-    accessorKey: "radar_distance",
+    accessorKey: "radar.distance",
     header: ({ column }) => {
       return (
         <Button
@@ -89,24 +92,8 @@ export const columns: ColumnDef<DroneDataRow>[] = [
       )
     },
     cell: ({ row }) => {
-      return `${row.getValue<number>("radar_distance").toFixed(1)} m`;
+      const distance = row.original.radar?.distance;
+      return distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A';
     },
   },
-  {
-    accessorKey: "altitude",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Altitude Sea Level/Drone (m)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      return `${row.getValue<number>("altitude").toFixed(1)} m`;
-    },
-  }
 ];

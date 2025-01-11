@@ -538,5 +538,13 @@
     "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_010449_sample.csv",
     "status": "error",
     "error": "CSV processing not implemented"
+  },
+  "74e06187-aed1-4bf5-a95f-17a6c314479f": {
+    "filename": "20250111_011128_sample.csv",
+    "original_filename": "sample.csv",
+    "timestamp": "2025-01-11T01:11:28.067457",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250111_011128_sample.csv",
+    "status": "error",
+    "error": "CSV processing not implemented"
   }
 }
