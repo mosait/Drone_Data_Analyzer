@@ -118,13 +118,26 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
   selectFile: async (file: FileUploadResponse) => {
     try {
       set({ isLoading: true, selectedFile: file });
-      // Just load the data, don't upload
-      await get().setCurrentFile(file);
+      
+      // Load data for the selected file
+      const rawData = await api.data.get(file.id);
+      const processedResponse = await api.flightData.getProcessedData(file.id);
+      
+      set({ 
+        currentFile: file, 
+        currentData: rawData, 
+        processedData: processedResponse,
+        error: null
+      });
     } catch (error) {
       console.error('Error selecting file:', error);
-      set({ error: 'Failed to select file' });
+      set({ 
+        error: error instanceof Error ? error.message : 'Failed to load file data',
+        currentData: null,
+        processedData: null
+      });
     } finally {
       set({ isLoading: false });
     }
-  }
+  },
 }));

@@ -1,14 +1,21 @@
 # backend/app/api/v1/endpoints/files.py
+
+import os
+import uuid
+import json
+import shutil
+import logging
+from datetime import datetime
+from pathlib import Path
+from typing import List
 from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
-from typing import List
-from datetime import datetime
-import uuid
-import os
-import json
-from pathlib import Path
 from ....core.config import settings
 from ....services.data_processing import process_file
+from ....utils.file_validator import validate_file_content
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -31,24 +38,51 @@ def save_file_mapping(mapping):
 
 @router.post("/upload")
 async def upload_file(
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
+    background_tasks: BackgroundTasks, file: UploadFile = File(...)
 ) -> JSONResponse:
     """Upload a drone data file (CSV or JSON)."""
     try:
-        # Generate timestamp and UUID
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Log file details
+        logger.debug(f"Received file: {file.filename}")
+        logger.debug(f"Content type: {file.content_type}")
+
+        # Validate file content
+        is_valid, error_message = await validate_file_content(file)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=error_message)
+
+        # Generate IDs and paths
         file_id = str(uuid.uuid4())
-
-        # Create filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         original_filename = file.filename
-        filename = f"{timestamp}_{original_filename}"
-        file_path = settings.UPLOAD_DIR / filename
+        save_filename = f"{timestamp}_{original_filename}"
+        file_path = settings.UPLOAD_DIR / save_filename
 
-        # Save the file
+        # Ensure upload directory exists
+        settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+        logger.debug(f"Saving file to: {file_path}")
+
+        # Save file using chunks
         with open(file_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
+            while True:
+                chunk = await file.read(8192)  # 8KB chunks
+                if not chunk:
+                    break
+                buffer.write(chunk)
+
+        # Verify the saved file
+        if not file_path.exists():
+            logger.error(f"File not found after saving: {file_path}")
+            raise HTTPException(status_code=500, detail="Failed to save file")
+
+        saved_size = file_path.stat().st_size
+        logger.debug(f"Saved file size: {saved_size} bytes")
+
+        if saved_size == 0:
+            logger.error("Saved file is empty")
+            file_path.unlink()  # Delete empty file
+            raise HTTPException(status_code=500, detail="Failed to save file content")
 
         # Update file mapping
         mapping = get_file_mapping()
@@ -58,23 +92,27 @@ async def upload_file(
             "path": str(file_path),
             "id": file_id,
             "status": "pending",
+            "size": saved_size,
         }
         save_file_mapping(mapping)
-
-        # Create response
-        response_data = {
-            "id": file_id,
-            "filename": original_filename,
-            "timestamp": mapping[file_id]["timestamp"],
-            "status": "success",
-        }
 
         # Start background processing
         background_tasks.add_task(process_file, file_id, str(file_path))
 
-        return JSONResponse(status_code=200, content=response_data)
+        return JSONResponse(
+            status_code=200,
+            content={
+                "id": file_id,
+                "filename": original_filename,
+                "timestamp": mapping[file_id]["timestamp"],
+                "status": "success",
+            },
+        )
 
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Upload error: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"An error occurred while uploading the file: {str(e)}",
@@ -89,24 +127,22 @@ async def list_files() -> List[dict]:
         files = []
 
         for file_id, file_info in mapping.items():
-            # Check if file still exists
-            if Path(file_info["path"]).exists():
+            file_path = Path(file_info["path"])
+            if file_path.exists() and file_path.stat().st_size > 0:
                 files.append(
                     {
                         "id": file_id,
-                        "filename": file_info[
-                            "filename"
-                        ],  # Changed from original_filename
+                        "filename": file_info["filename"],
                         "timestamp": file_info["timestamp"],
                         "status": file_info.get("status", "success"),
                     }
                 )
 
-        # Sort by timestamp descending
         files.sort(key=lambda x: x["timestamp"], reverse=True)
         return files
 
     except Exception as e:
+        logger.error(f"Error listing files: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500, detail=f"An error occurred while listing files: {str(e)}"
         )
@@ -121,7 +157,9 @@ async def get_file_info(file_id: str):
             raise HTTPException(status_code=404, detail="File not found")
 
         file_info = mapping[file_id]
-        if not Path(file_info["path"]).exists():
+        file_path = Path(file_info["path"])
+
+        if not file_path.exists():
             raise HTTPException(status_code=404, detail="File not found")
 
         return {
@@ -134,6 +172,7 @@ async def get_file_info(file_id: str):
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Error getting file info: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"An error occurred while getting file info: {str(e)}",

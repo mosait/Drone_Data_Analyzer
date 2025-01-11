@@ -1,136 +1,122 @@
 # backend/app/services/data_processing.py
+
 import json
 import csv
-from pathlib import Path
+import pandas as pd
 import logging
+from pathlib import Path
 from typing import List, Dict
 from datetime import datetime
+from io import StringIO
 from ..core.config import settings
 
-# Set up detailed logging
+# Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-
-
-def read_csv_file(file_path: Path) -> List[Dict]:
-    """Read and parse CSV file."""
-    logger.debug(f"Reading CSV file: {file_path}")
-    data = []
-
-    with open(file_path, "r", newline="") as f:
-        # Print first few lines for debugging
-        content = f.read()
-        logger.debug(f"File content:\n{content[:500]}")
-        f.seek(0)  # Reset file pointer
-
-        reader = csv.DictReader(f)
-        logger.debug(f"CSV headers: {reader.fieldnames}")
-
-        for row in reader:
-            try:
-                processed_row = {
-                    "timestamp": row["timestamp"].strip(),
-                    "gps": {
-                        "latitude": float(row["latitude"].strip()),
-                        "longitude": float(row["longitude"].strip()),
-                        "altitude": float(row["altitude"].strip()),
-                    },
-                    "radar": {"distance": float(row["radar_distance"].strip())},
-                }
-                data.append(processed_row)
-            except Exception as e:
-                logger.error(f"Error processing row: {row} - Error: {e}")
-                continue
-
-    logger.debug(f"Read {len(data)} records from CSV")
-    return data
 
 
 def read_file_content(file_path: Path) -> List[Dict]:
     """Read and process file content."""
     logger.debug(f"Reading file: {file_path}")
 
-    if file_path.suffix.lower() == ".csv":
-        return read_csv_file(file_path)
+    if not file_path.exists():
+        logger.error(f"File not found: {file_path}")
+        raise ValueError(f"File not found: {file_path}")
 
-    # Try JSON if not CSV
-    try:
-        with open(file_path, "r") as f:
-            data = json.load(f)
-            if isinstance(data, dict):
-                return [data]
-            return data
-    except json.JSONDecodeError:
-        raise ValueError("Invalid JSON format")
+    file_size = file_path.stat().st_size
+    logger.debug(f"File size: {file_size} bytes")
 
-
-def read_file_content(file_path: Path) -> List[Dict]:
-    """Read and process file content."""
-    logger.debug(f"Attempting to read file: {file_path}")
-
-    # First, let's look at the file content
-    try:
-        with open(file_path, "rb") as f:
-            raw_content = f.read(1024)  # Read first 1KB
-            logger.debug(f"First 1KB of file content (hex): {raw_content.hex()[:100]}")
-    except Exception as e:
-        logger.error(f"Error reading raw content: {e}")
+    if file_size == 0:
+        logger.error("File is empty")
+        raise ValueError("File is empty")
 
     try:
-        # Try JSON first
-        logger.debug("Attempting to read as JSON...")
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
-                logger.debug(f"File content (first 100 chars): {content[:100]}")
+        # Try reading with different encodings
+        for encoding in ["utf-8", "utf-8-sig", "iso-8859-1"]:
+            try:
+                with open(file_path, "r", encoding=encoding) as f:
+                    content = f.read()
+                logger.debug(f"Successfully read file with {encoding} encoding")
+                break
+            except UnicodeDecodeError:
+                continue
+        else:
+            raise ValueError("Could not read file with any supported encoding")
+
+        # Process based on file type
+        if file_path.suffix.lower() == ".csv":
+            logger.debug("Processing CSV file")
+            try:
+                df = pd.read_csv(StringIO(content))
+
+                # Validate CSV structure
+                required_columns = {
+                    "timestamp",
+                    "latitude",
+                    "longitude",
+                    "altitude",
+                    "radar_distance",
+                }
+                if not all(col in df.columns for col in required_columns):
+                    raise ValueError(
+                        f"Missing required columns: {required_columns - set(df.columns)}"
+                    )
+
+                data = []
+                for _, row in df.iterrows():
+                    processed_row = {
+                        "timestamp": row["timestamp"],
+                        "gps": {
+                            "latitude": float(row["latitude"]),
+                            "longitude": float(row["longitude"]),
+                            "altitude": float(row["altitude"]),
+                        },
+                        "radar": {"distance": float(row["radar_distance"])},
+                    }
+                    data.append(processed_row)
+
+                logger.debug(f"Successfully processed {len(data)} records from CSV")
+                return data
+
+            except Exception as e:
+                logger.error(f"Failed to parse CSV: {e}")
+                raise ValueError(f"Failed to parse CSV: {str(e)}")
+
+        else:  # JSON file
+            logger.debug("Processing JSON file")
+            try:
                 data = json.loads(content)
                 if isinstance(data, dict):
                     data = [data]
-                if not data:
-                    logger.error("JSON data is empty")
-                    raise ValueError("Empty JSON data")
-                logger.debug(f"Successfully read {len(data)} records as JSON")
+                elif not isinstance(data, list):
+                    raise ValueError("JSON must contain an object or array of objects")
+
+                # Validate JSON structure
+                for item in data:
+                    if not all(
+                        field in item for field in ["timestamp", "gps", "radar"]
+                    ):
+                        raise ValueError("Missing required fields in JSON")
+
+                    gps = item.get("gps", {})
+                    if not all(
+                        field in gps for field in ["latitude", "longitude", "altitude"]
+                    ):
+                        raise ValueError("Missing required GPS fields in JSON")
+
+                    if "distance" not in item.get("radar", {}):
+                        raise ValueError("Missing radar distance in JSON")
+
+                logger.debug(f"Successfully processed {len(data)} records from JSON")
                 return data
-        except (json.JSONDecodeError, UnicodeDecodeError) as e:
-            logger.debug(f"Failed to read as JSON: {e}")
 
-            # Try CSV if JSON fails
-            logger.debug("Attempting to read as CSV...")
-            with open(file_path, "r", newline="", encoding="utf-8") as f:
-                content = f.read()
-                logger.debug(f"CSV content (first 100 chars): {content[:100]}")
-                f.seek(0)
-                reader = csv.DictReader(f)
-                headers = reader.fieldnames
-                logger.debug(f"CSV headers: {headers}")
-
-                data = []
-                for row_num, row in enumerate(reader, 1):
-                    try:
-                        processed_row = {
-                            "timestamp": row["timestamp"],
-                            "gps": {
-                                "latitude": float(row["latitude"]),
-                                "longitude": float(row["longitude"]),
-                                "altitude": float(row["altitude"]),
-                            },
-                            "radar": {"distance": float(row["radar_distance"])},
-                        }
-                        data.append(processed_row)
-                    except (KeyError, ValueError) as e:
-                        logger.error(f"Error processing row {row_num}: {e}")
-                        logger.error(f"Row content: {row}")
-
-                if not data:
-                    logger.error("No valid rows found in CSV")
-                    raise ValueError("No valid rows in CSV")
-
-                logger.debug(f"Successfully read {len(data)} records from CSV")
-                return data
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON: {e}")
+                raise ValueError(f"Failed to parse JSON: {str(e)}")
 
     except Exception as e:
-        logger.error(f"Error reading file: {e}")
-        raise ValueError(f"Error reading file: {str(e)}")
+        logger.error(f"Error processing file: {e}", exc_info=True)
+        raise ValueError(f"Error processing file: {str(e)}")
 
 
 async def process_file(file_id: str, file_path: str) -> None:
@@ -149,28 +135,41 @@ async def process_file(file_id: str, file_path: str) -> None:
             with open(mapping_file, "w") as f:
                 json.dump(mapping, f, indent=2)
 
-        # Read and validate the file exists
+        # Read and validate the file
         path = Path(file_path)
-        if not path.exists():
-            raise ValueError(f"File not found: {file_path}")
+        logger.debug(f"Reading file content from {path}")
 
-        logger.debug(f"File size: {path.stat().st_size} bytes")
-
-        # Read the data
         data = read_file_content(path)
         if not data:
             raise ValueError("No valid data found in file")
 
-        logger.info(f"Successfully read {len(data)} records from file")
+        logger.debug(f"Successfully read {len(data)} records")
 
-        # Calculate statistics
-        altitude_values = [d["gps"]["altitude"] for d in data]
-        distance_values = [d["radar"]["distance"] for d in data]
+        # Process and calculate statistics
         timestamps = [
             datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00")) for d in data
         ]
+        altitude_values = [d["gps"]["altitude"] for d in data]
+        distance_values = [d["radar"]["distance"] for d in data]
 
-        # Create processed data structure
+        # Calculate time series data
+        start_time = min(timestamps)
+        time_series_points = []
+
+        for i, d in enumerate(data):
+            current_time = datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
+            duration = (current_time - start_time).total_seconds() / 60
+
+            point = {
+                "duration": duration,
+                "altitude": d["gps"]["altitude"],
+                "distance": d["radar"]["distance"],
+                "avgAltitude": sum(altitude_values) / len(altitude_values),
+                "avgDistance": sum(distance_values) / len(distance_values),
+            }
+            time_series_points.append(point)
+
+        # Create processed results
         processed_data = {
             "summary": {
                 "altitude": {
@@ -185,32 +184,13 @@ async def process_file(file_id: str, file_path: str) -> None:
                     "avg": sum(distance_values) / len(distance_values),
                     "change": f"{distance_values[-1] - distance_values[0]:+.1f}",
                 },
-            }
-        }
-
-        # Generate time series
-        start_time = min(timestamps)
-        time_series_points = []
-
-        for i, d in enumerate(data):
-            current_time = datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
-            duration = (current_time - start_time).total_seconds() / 60
-
-            time_series_points.append(
-                {
-                    "duration": duration,
-                    "altitude": d["gps"]["altitude"],
-                    "distance": d["radar"]["distance"],
-                    "avgAltitude": processed_data["summary"]["altitude"]["avg"],
-                    "avgDistance": processed_data["summary"]["radar"]["avg"],
-                }
-            )
-
-        processed_data["timeSeries"] = {
-            "points": time_series_points,
-            "averages": {
-                "altitude": processed_data["summary"]["altitude"]["avg"],
-                "distance": processed_data["summary"]["radar"]["avg"],
+            },
+            "timeSeries": {
+                "points": time_series_points,
+                "averages": {
+                    "altitude": sum(altitude_values) / len(altitude_values),
+                    "distance": sum(distance_values) / len(distance_values),
+                },
             },
         }
 
@@ -234,7 +214,7 @@ async def process_file(file_id: str, file_path: str) -> None:
         logger.info(f"Successfully processed file {file_id}")
 
     except Exception as e:
-        logger.error(f"Error processing file {file_id}: {e}")
+        logger.error(f"Error processing file {file_id}: {e}", exc_info=True)
         # Update mapping with error status
         if "mapping" in locals() and file_id in mapping:
             mapping[file_id].update({"status": "error", "error": str(e)})

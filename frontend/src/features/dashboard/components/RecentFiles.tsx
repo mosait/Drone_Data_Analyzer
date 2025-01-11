@@ -1,14 +1,16 @@
 // src/features/dashboard/components/RecentFiles.tsx
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileType, Clock } from 'lucide-react';
 import { useDataStore } from '@/store/useDataStore';
+import { FileUploadResponse } from '@/api/types';
 
 export const RecentFiles = () => {
   const { recentFiles, selectedFile, selectFile } = useDataStore();
 
-  const handleFileSelect = (file: any) => {
-    // Don't upload a new file, just select the existing one
+  const handleFileSelect = (file: FileUploadResponse) => {
+    // Directly select the file without trying to re-upload
     selectFile(file);
   };
 

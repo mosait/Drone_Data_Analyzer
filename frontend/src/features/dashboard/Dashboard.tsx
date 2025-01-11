@@ -8,7 +8,6 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileUpload } from '@/components/shared/FileUpload';
-import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { Loader } from 'lucide-react';
 
 export default function Dashboard() {
@@ -21,7 +20,8 @@ export default function Dashboard() {
     isLoading,
     error,
     clearError,
-    uploadProgress
+    uploadProgress,
+    selectFile
   } = useDataStore();
 
   useEffect(() => {
@@ -184,7 +184,7 @@ export default function Dashboard() {
                       key={file.id}
                       variant="ghost"
                       className="w-full flex items-center justify-between p-2 h-auto"
-                      onClick={() => uploadFile(new File([], file.filename))}
+                      onClick={() => selectFile(file)} 
                     >
                       <div className="flex items-center gap-2">
                         <FileType className="h-4 w-4 text-primary" />
