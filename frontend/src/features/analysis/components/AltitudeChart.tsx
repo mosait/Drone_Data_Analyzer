@@ -79,7 +79,7 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
             data={data.timeSeries.points}
-            margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+            margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
           >
             <defs>
               <linearGradient id="colorAltitude" x1="0" y1="0" x2="0" y2="1">

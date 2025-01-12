@@ -1,55 +1,53 @@
 // src/types/filesystem.d.ts
 
+type PermissionState = 'granted' | 'denied' | 'prompt';
+type PermissionName = 'clipboard-read' | 'clipboard-write' | 'file-system';
+
+interface PermissionDescriptor {
+  name: PermissionName;
+  mode?: 'read' | 'readwrite';
+  handle?: FileSystemHandle;
+}
+
+interface NavigatorPermissions {
+  request(permissionDesc: { name: string }): Promise<PermissionStatus>;
+}
+
+interface Navigator {
+  permissions?: NavigatorPermissions;
+}
+
+interface FileSystemPermissionDescriptor {
+  mode?: 'read' | 'readwrite';
+}
+
 interface FileSystemHandle {
   kind: 'file' | 'directory';
   name: string;
-  /**
-   * Request permission to read or write the handle
-   */
-  requestPermission(options?: { mode?: 'read' | 'readwrite' }): Promise<'granted' | 'denied'>;
+  queryPermission(descriptor: FileSystemPermissionDescriptor): Promise<PermissionState>;
+  requestPermission(descriptor: FileSystemPermissionDescriptor): Promise<PermissionState>;
 }
 
 interface FileSystemFileHandle extends FileSystemHandle {
   kind: 'file';
-  /**
-   * Get the file represented by this handle
-   */
   getFile(): Promise<File>;
-  /**
-   * Create a writable stream to write to the file
-   */
   createWritable(options?: { keepExistingData?: boolean }): Promise<FileSystemWritableFileStream>;
 }
 
 interface FileSystemDirectoryHandle extends FileSystemHandle {
   kind: 'directory';
-  /**
-   * Get an iterator of the entries in the directory
-   */
   values(): AsyncIterableIterator<FileSystemHandle>;
-  /**
-   * Get an entry from the directory
-   */
   getFileHandle(name: string, options?: { create?: boolean }): Promise<FileSystemFileHandle>;
-  /**
-   * Get a directory entry
-   */
   getDirectoryHandle(name: string, options?: { create?: boolean }): Promise<FileSystemDirectoryHandle>;
 }
 
 interface Window {
-  /**
-   * Show a directory picker dialog
-   */
   showDirectoryPicker(options?: {
     id?: string;
     mode?: 'read' | 'readwrite';
     startIn?: FileSystemHandle | 'desktop' | 'documents' | 'downloads' | 'music' | 'pictures' | 'videos';
   }): Promise<FileSystemDirectoryHandle>;
   
-  /**
-   * Show a file picker dialog
-   */
   showOpenFilePicker(options?: {
     multiple?: boolean;
     excludeAcceptAllOption?: boolean;

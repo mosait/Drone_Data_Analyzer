@@ -1410,5 +1410,205 @@
     "size": 473,
     "processed": true,
     "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_143452_sample_results.json"
+  },
+  "d06a4c0c-cef2-453d-856e-623a904d05dc": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-12T14:40:21.296858",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144021_sample.csv",
+    "id": "d06a4c0c-cef2-453d-856e-623a904d05dc",
+    "status": "success",
+    "size": 473,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144021_sample_results.json"
+  },
+  "cc1e6304-7ed9-4b66-afd2-24cc366f82fc": {
+    "filename": "sample.json",
+    "timestamp": "2025-01-12T14:40:31.557894",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144031_sample.json",
+    "id": "cc1e6304-7ed9-4b66-afd2-24cc366f82fc",
+    "status": "success",
+    "size": 1984,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144031_sample_results.json"
+  },
+  "a6a1a8a7-9cb5-465f-824c-0e536503d1d2": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-12T14:43:05.698406",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144305_sample.csv",
+    "id": "a6a1a8a7-9cb5-465f-824c-0e536503d1d2",
+    "status": "success",
+    "size": 473,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144305_sample_results.json"
+  },
+  "53927ce3-8f34-4977-84e9-c1539196cbb6": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-12T14:43:44.223719",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144344_sample.csv",
+    "id": "53927ce3-8f34-4977-84e9-c1539196cbb6",
+    "status": "success",
+    "size": 473,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_144344_sample_results.json"
+  },
+  "6d5a981b-6cb4-46e3-90f3-67d43ddc12f3": {
+    "filename": "sample - Copy.csv",
+    "timestamp": "2025-01-12T14:52:55.590651",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_145255_sample - Copy.csv",
+    "id": "6d5a981b-6cb4-46e3-90f3-67d43ddc12f3",
+    "status": "success",
+    "size": 473,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_145255_sample - Copy_results.json"
+  },
+  "0f6f09e4-e70a-4260-9f90-ac2406e358ed": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T15:24:01.665390",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_152401_100_sample.csv",
+    "id": "0f6f09e4-e70a-4260-9f90-ac2406e358ed",
+    "status": "success",
+    "size": 4432,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_152401_100_sample_results.json"
+  },
+  "0ea4bd24-2a3b-43d3-84f4-1629a5897829": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T15:30:24.033615",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_153024_100_sample.csv",
+    "id": "0ea4bd24-2a3b-43d3-84f4-1629a5897829",
+    "status": "success",
+    "size": 10140,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_153024_100_sample_results.json"
+  },
+  "3d1a9600-3267-47b4-bece-8fb83b3b62b5": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T15:31:16.606601",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_153116_100_sample.csv",
+    "id": "3d1a9600-3267-47b4-bece-8fb83b3b62b5",
+    "status": "success",
+    "size": 10138,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_153116_100_sample_results.json"
+  },
+  "55c8feea-fa4e-4b9b-9139-03305e56d740": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T15:33:33.892397",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_153333_100_sample.csv",
+    "id": "55c8feea-fa4e-4b9b-9139-03305e56d740",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_153333_100_sample_results.json"
+  },
+  "7fb9bcd9-d18a-49f1-bee8-a8f3bc022aa9": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:19:56.120206",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_211956_100_sample.csv",
+    "id": "7fb9bcd9-d18a-49f1-bee8-a8f3bc022aa9",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_211956_100_sample_results.json"
+  },
+  "9c66866d-2fb3-42b1-839d-d62f4e4058fb": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:20:44.849234",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_212044_100_sample.csv",
+    "id": "9c66866d-2fb3-42b1-839d-d62f4e4058fb",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_212044_100_sample_results.json"
+  },
+  "c822bd22-7e6d-400e-bca7-b78a7b5df5e2": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:25:21.376890",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_212521_100_sample.csv",
+    "id": "c822bd22-7e6d-400e-bca7-b78a7b5df5e2",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_212521_100_sample_results.json"
+  },
+  "ea470d11-81e9-4556-8a9a-b9304633dfc6": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:25:53.596499",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_212553_100_sample.csv",
+    "id": "ea470d11-81e9-4556-8a9a-b9304633dfc6",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_212553_100_sample_results.json"
+  },
+  "ab040c45-08a3-4c22-854f-777841edf167": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:35:51.685826",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213551_100_sample.csv",
+    "id": "ab040c45-08a3-4c22-854f-777841edf167",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213551_100_sample_results.json"
+  },
+  "71f0c20f-7c9a-4a78-bcb3-490ddec6c54a": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:36:30.961026",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213630_100_sample.csv",
+    "id": "71f0c20f-7c9a-4a78-bcb3-490ddec6c54a",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213630_100_sample_results.json"
+  },
+  "91f7a270-6b16-410d-9348-423e909bf5e3": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:39:17.146909",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213917_100_sample.csv",
+    "id": "91f7a270-6b16-410d-9348-423e909bf5e3",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213917_100_sample_results.json"
+  },
+  "6dda1354-4c83-4f7a-9511-1d6635546e2d": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:39:29.641427",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213929_100_sample.csv",
+    "id": "6dda1354-4c83-4f7a-9511-1d6635546e2d",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_213929_100_sample_results.json"
+  },
+  "81abdfc0-198c-4cb8-90cf-2a06247af7ee": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:40:26.716657",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_214026_100_sample.csv",
+    "id": "81abdfc0-198c-4cb8-90cf-2a06247af7ee",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_214026_100_sample_results.json"
+  },
+  "53a7c791-13b3-405d-94b3-2c008cb5c337": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:41:39.256106",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_214139_100_sample.csv",
+    "id": "53a7c791-13b3-405d-94b3-2c008cb5c337",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_214139_100_sample_results.json"
+  },
+  "9be50f83-ce34-452b-a8eb-64346f6fa186": {
+    "filename": "100_sample.csv",
+    "timestamp": "2025-01-12T21:45:08.409430",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_214508_100_sample.csv",
+    "id": "9be50f83-ce34-452b-a8eb-64346f6fa186",
+    "status": "success",
+    "size": 3556,
+    "processed": true,
+    "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_214508_100_sample_results.json"
   }
 }
