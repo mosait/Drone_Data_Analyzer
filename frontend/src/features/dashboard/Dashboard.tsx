@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { Loader } from 'lucide-react';
+import { FolderMonitor } from '@/components/shared/FolderMonitor';
 
 export default function Dashboard() {
   const { 
@@ -97,6 +98,11 @@ export default function Dashboard() {
                 allowedTypes={['.csv', '.json']}
               />
             </CardContent>
+          </Card>
+
+          {/* Folder Monitor */}
+          <Card className="mb-6">
+            <FolderMonitor onFileFound={handleFileUpload} />
           </Card>
 
           {/* Flight Metrics */}
