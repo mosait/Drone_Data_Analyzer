@@ -1,0 +1,591 @@
+{
+  "summary": {
+    "altitude": {
+      "max": 300.0,
+      "min": 10.0,
+      "avg": 159.69135802469137,
+      "change": "-90.0"
+    },
+    "radar": {
+      "max": 165.0,
+      "min": 0.0,
+      "avg": 87.5925925925926,
+      "change": "+65.0"
+    }
+  },
+  "timeSeries": {
+    "points": [
+      {
+        "duration": 0.0,
+        "altitude": 100.0,
+        "distance": 80.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 1.0,
+        "altitude": 95.0,
+        "distance": 75.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 2.0,
+        "altitude": 120.0,
+        "distance": 85.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 3.0,
+        "altitude": 110.0,
+        "distance": 90.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 4.0,
+        "altitude": 100.0,
+        "distance": 95.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 5.0,
+        "altitude": 130.0,
+        "distance": 100.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 6.0,
+        "altitude": 150.0,
+        "distance": 105.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 7.0,
+        "altitude": 140.0,
+        "distance": 110.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 8.0,
+        "altitude": 135.0,
+        "distance": 115.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 9.0,
+        "altitude": 160.0,
+        "distance": 120.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 10.0,
+        "altitude": 155.0,
+        "distance": 125.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 11.0,
+        "altitude": 165.0,
+        "distance": 130.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 12.0,
+        "altitude": 170.0,
+        "distance": 135.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 13.0,
+        "altitude": 180.0,
+        "distance": 140.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 14.0,
+        "altitude": 175.0,
+        "distance": 145.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 15.0,
+        "altitude": 185.0,
+        "distance": 150.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 16.0,
+        "altitude": 190.0,
+        "distance": 155.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 17.0,
+        "altitude": 200.0,
+        "distance": 160.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 18.0,
+        "altitude": 195.0,
+        "distance": 165.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 19.0,
+        "altitude": 180.0,
+        "distance": 160.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 20.0,
+        "altitude": 170.0,
+        "distance": 155.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 21.0,
+        "altitude": 160.0,
+        "distance": 150.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 22.0,
+        "altitude": 150.0,
+        "distance": 145.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 23.0,
+        "altitude": 140.0,
+        "distance": 140.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 24.0,
+        "altitude": 130.0,
+        "distance": 135.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 25.0,
+        "altitude": 120.0,
+        "distance": 130.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 26.0,
+        "altitude": 110.0,
+        "distance": 125.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 27.0,
+        "altitude": 100.0,
+        "distance": 120.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 28.0,
+        "altitude": 90.0,
+        "distance": 115.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 29.0,
+        "altitude": 85.0,
+        "distance": 110.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 30.0,
+        "altitude": 95.0,
+        "distance": 105.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 31.0,
+        "altitude": 100.0,
+        "distance": 100.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 32.0,
+        "altitude": 110.0,
+        "distance": 95.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 33.0,
+        "altitude": 120.0,
+        "distance": 90.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 34.0,
+        "altitude": 130.0,
+        "distance": 85.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 35.0,
+        "altitude": 140.0,
+        "distance": 80.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 36.0,
+        "altitude": 150.0,
+        "distance": 75.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 37.0,
+        "altitude": 160.0,
+        "distance": 70.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 38.0,
+        "altitude": 170.0,
+        "distance": 65.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 39.0,
+        "altitude": 180.0,
+        "distance": 60.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 40.0,
+        "altitude": 190.0,
+        "distance": 55.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 41.0,
+        "altitude": 200.0,
+        "distance": 50.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 42.0,
+        "altitude": 210.0,
+        "distance": 45.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 43.0,
+        "altitude": 220.0,
+        "distance": 40.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 44.0,
+        "altitude": 230.0,
+        "distance": 35.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 45.0,
+        "altitude": 240.0,
+        "distance": 30.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 46.0,
+        "altitude": 250.0,
+        "distance": 25.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 47.0,
+        "altitude": 260.0,
+        "distance": 20.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 48.0,
+        "altitude": 270.0,
+        "distance": 15.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 49.0,
+        "altitude": 280.0,
+        "distance": 10.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 50.0,
+        "altitude": 290.0,
+        "distance": 5.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 51.0,
+        "altitude": 300.0,
+        "distance": 0.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 52.0,
+        "altitude": 290.0,
+        "distance": 5.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 53.0,
+        "altitude": 280.0,
+        "distance": 10.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 54.0,
+        "altitude": 270.0,
+        "distance": 15.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 55.0,
+        "altitude": 260.0,
+        "distance": 20.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 56.0,
+        "altitude": 250.0,
+        "distance": 25.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 57.0,
+        "altitude": 240.0,
+        "distance": 30.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 58.0,
+        "altitude": 230.0,
+        "distance": 35.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 59.0,
+        "altitude": 220.0,
+        "distance": 40.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 60.0,
+        "altitude": 210.0,
+        "distance": 45.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 61.0,
+        "altitude": 200.0,
+        "distance": 50.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 62.0,
+        "altitude": 190.0,
+        "distance": 55.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 63.0,
+        "altitude": 180.0,
+        "distance": 60.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 64.0,
+        "altitude": 170.0,
+        "distance": 65.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 65.0,
+        "altitude": 160.0,
+        "distance": 70.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 66.0,
+        "altitude": 150.0,
+        "distance": 75.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 67.0,
+        "altitude": 140.0,
+        "distance": 80.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 68.0,
+        "altitude": 130.0,
+        "distance": 85.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 69.0,
+        "altitude": 120.0,
+        "distance": 90.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 70.0,
+        "altitude": 110.0,
+        "distance": 95.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 71.0,
+        "altitude": 100.0,
+        "distance": 100.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 72.0,
+        "altitude": 90.0,
+        "distance": 105.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 73.0,
+        "altitude": 80.0,
+        "distance": 110.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 74.0,
+        "altitude": 70.0,
+        "distance": 115.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 75.0,
+        "altitude": 60.0,
+        "distance": 120.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 76.0,
+        "altitude": 50.0,
+        "distance": 125.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 77.0,
+        "altitude": 40.0,
+        "distance": 130.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 78.0,
+        "altitude": 30.0,
+        "distance": 135.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 79.0,
+        "altitude": 20.0,
+        "distance": 140.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      },
+      {
+        "duration": 80.0,
+        "altitude": 10.0,
+        "distance": 145.0,
+        "avgAltitude": 159.69135802469137,
+        "avgDistance": 87.5925925925926
+      }
+    ],
+    "averages": {
+      "altitude": 159.69135802469137,
+      "distance": 87.5925925925926
+    }
+  }
+}

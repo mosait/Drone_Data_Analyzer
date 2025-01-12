@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { Loader } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
+import { ExportDialog } from '@/components/shared/ExportDialog';
 
 export default function Dashboard() {
   const { 
@@ -161,15 +162,7 @@ export default function Dashboard() {
                   <Upload className="h-5 w-5" />
                   Upload New File
                 </Button>
-                <Button
-                  className="w-full flex items-center gap-2 justify-center h-11"
-                  variant="outline"
-                  disabled={!selectedFile}
-                  onClick={() => handleExport('csv')}
-                >
-                  <Download className="h-5 w-5" />
-                  Export Results
-                </Button>
+                <ExportDialog selectedFile={selectedFile} disabled={!selectedFile} />
               </div>
             </CardContent>
           </Card>
