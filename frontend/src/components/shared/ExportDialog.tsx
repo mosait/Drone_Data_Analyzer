@@ -1,5 +1,4 @@
 // src/components/shared/ExportDialog.tsx
-
 import { useState } from "react";
 import {
   Dialog,
@@ -21,6 +20,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FileUploadResponse } from "@/api/types";
 import { api } from "@/api/endpoints";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface ExportDialogProps {
   selectedFile: FileUploadResponse | null;
@@ -33,13 +34,19 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
     return selectedFile ? `${selectedFile.filename.split(".")[0]}_export` : "export";
   });
   const [isExporting, setIsExporting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleExport = async () => {
     if (!selectedFile) return;
 
     try {
       setIsExporting(true);
+      setError(null);
+
       const blob = await api.analysis.export(selectedFile.id, format);
+      
+      // Create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -48,15 +55,19 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      // Close the dialog after successful export
+      setIsOpen(false);
     } catch (error) {
       console.error("Export error:", error);
+      setError("Failed to export file. Please try again.");
     } finally {
       setIsExporting(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -72,6 +83,12 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
           <DialogTitle>Export Data</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-2">
             <Label htmlFor="filename">File Name</Label>
             <Input
@@ -93,8 +110,18 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
               </SelectContent>
             </Select>
           </div>
-          <Button className="w-full" onClick={handleExport} disabled={isExporting || !filename}>
-            {isExporting ? "Exporting..." : "Export"}
+          <Button 
+            className="w-full" 
+            onClick={handleExport} 
+            disabled={isExporting || !filename}
+          >
+            {isExporting ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Exporting...
+              </span>
+            ) : (
+              "Export"
+            )}
           </Button>
         </div>
       </DialogContent>

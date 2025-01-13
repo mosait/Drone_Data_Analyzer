@@ -4,7 +4,7 @@ import { transformDroneData } from '@/utils/data-transformers';
 import type { 
   FileUploadResponse, 
   DroneData, 
-  ProcessedFlightData
+  ProcessedFlightData 
 } from '@/api/types';
 
 export const api = {
@@ -30,9 +30,7 @@ export const api = {
     get: async (fileId: string): Promise<DroneData[]> => {
       try {
         const { data } = await apiClient.get(`/api/v1/data/${fileId}`);
-        console.log('API Response for get:', data);
         const transformedData = transformDroneData(data);
-        console.log('Transformed data:', transformedData);
         return transformedData;
       } catch (error) {
         console.error('Error in data.get:', error);
@@ -45,70 +43,12 @@ export const api = {
     getProcessedData: async (fileId: string): Promise<ProcessedFlightData> => {
       try {
         const { data } = await apiClient.get(`/api/v1/data/${fileId}?include_summary=true`);
-        console.log('API Response for processed data:', data);
         
-        // Get the drone data
-        const droneData = transformDroneData(data);
-        
-        if (!droneData.length) {
-          throw new Error('No flight data available');
+        if (!data || !data.data || !Array.isArray(data.data)) {
+          throw new Error('Invalid data format received');
         }
 
-        // Calculate time series
-        const startTime = new Date(droneData[0].timestamp);
-        const timeSeriesPoints = droneData.map(point => {
-          const currentTime = new Date(point.timestamp);
-          const duration = (currentTime.getTime() - startTime.getTime()) / (1000 * 60);
-
-          return {
-            duration,
-            altitude: point.gps.altitude,
-            distance: point.radar.distance,
-            avgAltitude: 0,
-            avgDistance: 0
-          };
-        });
-
-        // Calculate statistics
-        const altitudes = droneData.map(d => d.gps.altitude);
-        const distances = droneData.map(d => d.radar.distance);
-        
-        const avgAltitude = altitudes.reduce((a, b) => a + b, 0) / altitudes.length;
-        const avgDistance = distances.reduce((a, b) => a + b, 0) / distances.length;
-
-        // Add averages to time series points
-        timeSeriesPoints.forEach(point => {
-          point.avgAltitude = avgAltitude;
-          point.avgDistance = avgDistance;
-        });
-
-        // Create the processed data structure
-        const processedData: ProcessedFlightData = {
-          summary: {
-            altitude: {
-              max: Math.max(...altitudes),
-              min: Math.min(...altitudes),
-              avg: avgAltitude,
-              change: `${(altitudes[altitudes.length - 1] - altitudes[0]).toFixed(1)}`
-            },
-            radar: {
-              max: Math.max(...distances),
-              min: Math.min(...distances),
-              avg: avgDistance,
-              change: `${(distances[distances.length - 1] - distances[0]).toFixed(1)}`
-            }
-          },
-          timeSeries: {
-            points: timeSeriesPoints,
-            averages: {
-              altitude: avgAltitude,
-              distance: avgDistance
-            }
-          }
-        };
-
-        console.log('Processed data:', processedData);
-        return processedData;
+        return data;
       } catch (error) {
         console.error('Error in flightData.getProcessedData:', error);
         throw error;
@@ -118,11 +58,69 @@ export const api = {
 
   analysis: {
     export: async (fileId: string, format: 'csv' | 'json'): Promise<Blob> => {
-      const { data } = await apiClient.get(`/api/v1/analyze/${fileId}/export`, {
-        params: { format },
-        responseType: 'blob'
-      });
-      return data;
+      try {
+        const response = await apiClient.get<{ data: DroneData[] }>(`/api/v1/data/${fileId}`);
+        const data = response.data.data;
+
+        if (format === 'csv') {
+          return createCSVBlob(data);
+        } else {
+          return createJSONBlob(data);
+        }
+      } catch (error) {
+        console.error('Export error:', error);
+        throw error;
+      }
     }
   }
 };
+
+function formatTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString('en-US', {
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+}
+
+function createCSVBlob(data: DroneData[]): Blob {
+  // Create CSV header
+  const headers = ['timestamp', 'latitude', 'longitude', 'altitude', 'radar_distance'];
+  
+  // Create CSV rows
+  const rows = data.map(item => [
+    formatTime(item.timestamp),
+    item.gps.latitude,
+    item.gps.longitude,
+    item.gps.altitude,
+    item.radar.distance
+  ]);
+
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+
+  return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+}
+
+function createJSONBlob(data: DroneData[]): Blob {
+  const formattedData = data.map(item => ({
+    timestamp: formatTime(item.timestamp),
+    gps: {
+      latitude: item.gps.latitude,
+      longitude: item.gps.longitude,
+      altitude: item.gps.altitude
+    },
+    radar: {
+      distance: item.radar.distance
+    }
+  }));
+
+  return new Blob(
+    [JSON.stringify(formattedData, null, 2)], 
+    { type: 'application/json;charset=utf-8;' }
+  );
+}
