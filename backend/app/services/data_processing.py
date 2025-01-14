@@ -1,5 +1,4 @@
 # backend/app/services/data_processing.py
-
 import json
 import csv
 import pandas as pd
@@ -14,9 +13,12 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-def read_file_content(file_path: Path) -> List[Dict]:
+def read_file_content(file_path: str | Path) -> List[Dict]:
     """Read and process file content."""
     logger.debug(f"Reading file: {file_path}")
+
+    # Convert string path to Path object
+    file_path = Path(file_path) if isinstance(file_path, str) else file_path
 
     if not file_path.exists():
         raise ValueError(f"File not found: {file_path}")
@@ -62,7 +64,7 @@ def read_file_content(file_path: Path) -> List[Dict]:
         raise ValueError(f"Error processing file: {str(e)}")
 
 
-async def process_file(file_id: str, file_path: Path) -> None:
+async def process_file(file_id: str, file_path: str | Path) -> None:
     """Process uploaded file."""
     logger.info(f"Processing file {file_id}")
 
@@ -78,6 +80,7 @@ async def process_file(file_id: str, file_path: Path) -> None:
                 ).strftime("%H:%M:%S")
 
         # Save processed results
+        file_path = Path(file_path)  # Convert to Path object
         results_path = file_path.with_name(f"{file_path.stem}_processed.json")
         with open(results_path, "w") as f:
             json.dump(data, f, indent=2)
