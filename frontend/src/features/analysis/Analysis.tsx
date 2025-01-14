@@ -79,7 +79,7 @@ const Analysis = () => {
 
   if (!currentFile || !currentData || !metrics?.flightMetrics || !metrics?.timeSeries || !metrics?.summary) {
     return (
-      <div className="p-6 py-20">
+      <div className="p-6 py-8">
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>

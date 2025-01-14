@@ -1,7 +1,7 @@
 // src/features/data-table/components/columns.tsx
 import { ColumnDef } from "@tanstack/react-table"
-import { DroneData } from "../../../api/types"
-import { Button } from "../../../components/ui/button"
+import { DroneData } from "@/api/types"
+import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
 
 export const columns: ColumnDef<DroneData>[] = [
@@ -13,32 +13,42 @@ export const columns: ColumnDef<DroneData>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Timestamp
+          Time
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
     cell: ({ row }) => {
-      return new Date(row.getValue("timestamp")).toLocaleString()
+      return row.getValue("timestamp")
     },
   },
   {
-    accessorKey: "altitude",
+    id: "waypoint",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Altitude (m)
+          Waypoint
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
+    cell: ({ row, table }) => {
+      // Get row index within the current page
+      const pageIndex = table.getState().pagination.pageIndex;
+      const pageSize = table.getState().pagination.pageSize;
+      const rowIndex = row.index;
+      const globalIndex = pageIndex * pageSize + rowIndex;
+      return `#${globalIndex + 1}`;
+    },
+    sortingFn: (rowA, rowB) => {
+      return rowA.index - rowB.index;
+    },
   },
   {
-    accessorFn: (row) => row.gps.latitude,
-    id: "latitude",
+    accessorKey: "gps.latitude",
     header: ({ column }) => {
       return (
         <Button
@@ -50,13 +60,13 @@ export const columns: ColumnDef<DroneData>[] = [
         </Button>
       )
     },
-    cell: ({ getValue }) => {
-      return getValue<number>().toFixed(6)
+    cell: ({ row }) => {
+      const latitude = row.original.gps?.latitude
+      return latitude !== undefined ? latitude.toFixed(6) : 'N/A'
     },
   },
   {
-    accessorFn: (row) => row.gps.longitude,
-    id: "longitude",
+    accessorKey: "gps.longitude",
     header: ({ column }) => {
       return (
         <Button
@@ -68,13 +78,31 @@ export const columns: ColumnDef<DroneData>[] = [
         </Button>
       )
     },
-    cell: ({ getValue }) => {
-      return getValue<number>().toFixed(6)
+    cell: ({ row }) => {
+      const longitude = row.original.gps?.longitude
+      return longitude !== undefined ? longitude.toFixed(6) : 'N/A'
     },
   },
   {
-    accessorFn: (row) => row.radar.distance,
-    id: "radar_distance",
+    accessorKey: "gps.altitude",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Altitude (m)
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      const altitude = row.original.gps?.altitude
+      return altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A'
+    },
+  },
+  {
+    accessorKey: "radar.distance",
     header: ({ column }) => {
       return (
         <Button
@@ -86,8 +114,9 @@ export const columns: ColumnDef<DroneData>[] = [
         </Button>
       )
     },
-    cell: ({ getValue }) => {
-      return `${getValue<number>().toFixed(2)} m`
+    cell: ({ row }) => {
+      const distance = row.original.radar?.distance
+      return distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A'
     },
   },
 ]
