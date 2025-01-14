@@ -1,4 +1,4 @@
-// src/components/columns.tsx
+// src/features/data-table/components/Columns.tsx
 import { ColumnDef } from "@tanstack/react-table";
 import { DroneData } from "@/api/types";
 import { Button } from "@/components/ui/button";
