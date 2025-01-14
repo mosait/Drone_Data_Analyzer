@@ -7,10 +7,10 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileUpload } from '@/components/shared/FileUpload';
-import { Loader } from 'lucide-react';
+import { Loader, AlertCircle } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { ExportDialog } from '@/components/shared/ExportDialog';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function Dashboard() {
   const { 
@@ -27,6 +27,15 @@ export default function Dashboard() {
     selectFile
   } = useDataStore();
 
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const itemsPerPage = 10; // Number of files per page
+  const [currentPage, setCurrentPage] = useState(0);
+
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [recentFiles]);
+
   useEffect(() => {
     loadRecentFiles();
   }, []);
@@ -37,14 +46,14 @@ export default function Dashboard() {
     };
   }, []);
 
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-
   const handleFileUpload = async (file: File) => {
+    setUploadError(null);
     try {
       await uploadFile(file);
-      setIsUploadDialogOpen(false); // Close the dialog after successful upload
+      setIsUploadDialogOpen(false);  // Close dialog after successful upload
     } catch (error) {
       console.error('Upload error:', error);
+      setUploadError(error instanceof Error ? error.message : 'Failed to upload file');
     }
   };
 
@@ -79,11 +88,50 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <FileUpload 
-                onFileAccepted={handleFileUpload}
-                maxSize={10}
-                allowedTypes={['.csv', '.json']}
-              />
+              <Dialog 
+                open={isUploadDialogOpen} 
+                onOpenChange={(open) => setIsUploadDialogOpen(open)}
+              >
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Upload Drone Data</DialogTitle>
+                  </DialogHeader>
+                  {uploadError && (
+                    <Alert variant="destructive" className="mb-4">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{uploadError}</AlertDescription>
+                    </Alert>
+                  )}
+                  <FileUpload 
+                    onFileAccepted={handleFileUpload}
+                    maxSize={10}
+                    allowedTypes={['.csv', '.json']}
+                  />
+                </DialogContent>
+              </Dialog>
+              <div
+                className={`
+                  relative border-2 border-dashed rounded-lg p-8
+                  hover:border-primary hover:bg-primary/5
+                  transition-colors duration-200
+                  cursor-pointer
+                `}
+                onClick={() => setIsUploadDialogOpen(true)}
+              >
+                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                  <div className="p-4 bg-primary/10 rounded-full">
+                    <FileType className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-semibold">
+                      Drag files or click to upload
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Supports .csv, .json files up to 10MB
+                    </p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -143,12 +191,12 @@ export default function Dashboard() {
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="pt-0">
+              <div className="flex flex-col justify-center h-[195px] space-y-4">
                 <Button
                   className="w-full flex items-center gap-2 justify-center h-11"
                   variant="outline"
-                  onClick={() => document.getElementById('file-input')?.click()}
+                  onClick={() => setIsUploadDialogOpen(true)}
                 >
                   <Upload className="h-5 w-5" />
                   Upload New File
@@ -171,28 +219,53 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               {recentFiles && recentFiles.length > 0 ? (
-                <div className="space-y-4">
-                  {recentFiles.map((file) => (
-                    <Button
-                      key={file.id}
-                      variant="ghost"
-                      className={`w-full flex items-center justify-between p-2 h-auto ${
-                        selectedFile?.id === file.id ? 'bg-primary/10' : ''
-                      }`}
-                      onClick={() => selectFile(file)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileType className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium truncate">
-                          {file.filename}
+                <>
+                  <div className="space-y-2 h-[400px] overflow-hidden">
+                    {recentFiles
+                      .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
+                      .map((file) => (
+                      <Button
+                        key={file.id}
+                        variant="ghost"
+                        className={`w-full flex items-center justify-between p-2 h-auto ${
+                          selectedFile?.id === file.id ? 'bg-primary/10' : ''
+                        }`}
+                        onClick={() => selectFile(file)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <FileType className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium truncate">
+                            {file.filename}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(file.timestamp).toLocaleDateString()}
                         </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(file.timestamp).toLocaleDateString()}
-                      </span>
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t mt-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                      disabled={currentPage === 0}
+                    >
+                      Previous
                     </Button>
-                  ))}
-                </div>
+                    <span className="text-sm text-muted-foreground">
+                      Page {currentPage + 1} of {Math.ceil(recentFiles.length / itemsPerPage)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                      disabled={(currentPage + 1) * itemsPerPage >= recentFiles.length}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </>
               ) : (
                 <div className="flex items-center justify-center h-32">
                   <p className="text-sm text-muted-foreground">No recent files</p>
