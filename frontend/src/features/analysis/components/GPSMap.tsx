@@ -4,14 +4,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, ZoomControl } from 'react-leaflet';
-import type { DroneData } from "@/api/types"
+import type { DroneData } from "@/api/types";
 
 interface GPSMapProps {
   data: DroneData[];
-  fileId?: string;
 }
 
-const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
+const GPSMap = ({ data }: GPSMapProps) => {
   const [selectedPoint, setSelectedPoint] = useState<DroneData | null>(null);
   const mapRef = useRef<L.Map>(null);
   const defaultZoom = 15;
@@ -30,9 +29,10 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
       totalDistance += L.latLng(points[i-1]).distanceTo(L.latLng(points[i]));
     }
 
-    // Calculate duration
-    const duration = (new Date(data[data.length - 1].timestamp).getTime() - 
-                     new Date(data[0].timestamp).getTime()) / 1000; // in seconds
+    // Calculate time difference between first and last point
+    const startTime = new Date(`1970-01-01T${data[0].timestamp}`);
+    const endTime = new Date(`1970-01-01T${data[data.length - 1].timestamp}`);
+    const duration = (endTime.getTime() - startTime.getTime()) / 60000; // Convert to minutes
 
     return {
       points,
@@ -40,68 +40,47 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
       startPoint: points[0],
       endPoint: points[points.length - 1],
       totalDistance: totalDistance / 1000, // Convert to km
-      duration: duration / 60, // Convert to minutes
+      duration: duration.toFixed(1),
       maxAltitude: Math.max(...data.map(d => d.gps.altitude))
     };
   }, [data]);
 
-  // Custom start icon
+  // Custom icons
   const startIcon = L.divIcon({
     className: 'custom-div-icon',
     html: `
-      <div style="
-        position: relative;
-        background-color: #22c55e;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      ">
-        <div style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 12px;
-          height: 12px;
-          background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24"><path d="M12 2L4.5 20.3L5.2 21L12 18L18.8 21L19.5 20.3L12 2Z"/></svg>') center/contain no-repeat;
-        "></div>
+      <div class="flex flex-col items-center">
+        <div class="h-6 w-6 rounded-full bg-emerald-500 border-2 border-white shadow-md relative">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+            <path fill="currentColor" d="M12 2L4.5 20.3L5.2 21L12 18L18.8 21L19.5 20.3L12 2Z" />
+          </svg>
+        </div>
+        <span class="mt-1 text-xs font-semibold text-emerald-700 bg-white px-1 rounded shadow-sm">Start</span>
       </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
+    iconSize: [40, 40],  // Increased size to accommodate label
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20]
   });
 
-  // Custom end icon
   const endIcon = L.divIcon({
     className: 'custom-div-icon',
     html: `
-      <div style="
-        position: relative;
-        background-color: #ef4444;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      ">
-        <div style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 12px;
-          height: 12px;
-          background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="white" viewBox="0 0 24 24"><path d="M12 2L4.5 20.3L5.2 21L12 18L18.8 21L19.5 20.3L12 2Z"/></svg>') center/contain no-repeat;
-        "></div>
+      <div class="flex flex-col items-center">
+        <div class="h-6 w-6 rounded-full bg-red-500 border-2 border-white shadow-md relative">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white">
+            <path fill="currentColor" d="M12 2L4.5 20.3L5.2 21L12 18L18.8 21L19.5 20.3L12 2Z" />
+          </svg>
+        </div>
+        <span class="mt-1 text-xs font-semibold text-red-700 bg-white px-1 rounded shadow-sm">End</span>
       </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
+    iconSize: [40, 40],  // Increased size to accommodate label
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20]
   });
 
-  // Custom point icon with larger hit area
+
   const pointIcon = L.divIcon({
     className: 'custom-div-icon-point',
     html: `
@@ -123,7 +102,7 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
           </div>
           <div className="space-y-1 bg-muted/30 p-3 rounded-lg">
             <p className="text-sm font-medium text-muted-foreground">Duration</p>
-            <p className="text-2xl font-bold">{flightInfo.duration.toFixed(1)}min</p>
+            <p className="text-2xl font-bold">{flightInfo.duration}min</p>
           </div>
           <div className="space-y-1 bg-muted/30 p-3 rounded-lg">
             <p className="text-sm font-medium text-muted-foreground">Max Altitude</p>
@@ -149,38 +128,6 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <ZoomControl position="topright" />
-            <div className="leaflet-top leaflet-right">
-              <div className="leaflet-control leaflet-bar" style={{ marginTop: "80px" }}>
-                <a
-                  href="#"
-                  role="button"
-                  className="leaflet-control-gps"
-                  title="Center Map"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    mapRef.current?.setView(flightInfo.center, defaultZoom);
-                  }}
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="8"/>
-                    <line x1="12" y1="2" x2="12" y2="4"/>
-                    <line x1="12" y1="20" x2="12" y2="22"/>
-                    <line x1="2" y1="12" x2="4" y2="12"/>
-                    <line x1="20" y1="12" x2="22" y2="12"/>
-                  </svg>
-                </a>
-              </div>
-            </div>
             
             {/* Flight path */}
             <Polyline
@@ -202,7 +149,7 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
                     Take Off Point
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p>Time: {new Date(data[0].timestamp).toLocaleTimeString()}</p>
+                    <p>Time: {data[0].timestamp}</p>
                     <p>Altitude: {data[0].gps.altitude.toFixed(1)}m</p>
                     <p>Lat: {data[0].gps.latitude.toFixed(6)}°</p>
                     <p>Lon: {data[0].gps.longitude.toFixed(6)}°</p>
@@ -223,7 +170,7 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
                     Landing Point
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p>Time: {new Date(data[data.length-1].timestamp).toLocaleTimeString()}</p>
+                    <p>Time: {data[data.length-1].timestamp}</p>
                     <p>Altitude: {data[data.length-1].gps.altitude.toFixed(1)}m</p>
                     <p>Lat: {data[data.length-1].gps.latitude.toFixed(6)}°</p>
                     <p>Lon: {data[data.length-1].gps.longitude.toFixed(6)}°</p>
@@ -249,7 +196,7 @@ const GPSMap = ({ data, fileId = '1' }: GPSMapProps) => {
                       Waypoint {index + 1}
                     </h3>
                     <div className="space-y-1 text-sm">
-                      <p>Time: {new Date(point.timestamp).toLocaleTimeString()}</p>
+                      <p>Time: {point.timestamp}</p>
                       <p>Altitude: {point.gps.altitude.toFixed(1)}m</p>
                       <p>Distance: {point.radar.distance.toFixed(1)}m</p>
                       <p>Lat: {point.gps.latitude.toFixed(6)}°</p>

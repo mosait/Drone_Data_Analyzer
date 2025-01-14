@@ -8,5 +8,53 @@
     "size": 3556,
     "processed": true,
     "results_path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250112_221020_100_sample_results.json"
+  },
+  "22763d8d-fd8c-4f18-9850-df58df49a8d9": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-13T20:52:39.586911",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250113_205239_sample.csv",
+    "id": "22763d8d-fd8c-4f18-9850-df58df49a8d9",
+    "status": "pending",
+    "size": 363
+  },
+  "500b1176-e21d-474d-a622-b7fca22c974f": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-13T20:55:23.196154",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250113_205523_sample.csv",
+    "id": "500b1176-e21d-474d-a622-b7fca22c974f",
+    "status": "pending",
+    "size": 363
+  },
+  "c71d397c-1243-4d9e-b9b2-aa802a096e33": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-13T21:00:12.491897",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250113_210012_sample.csv",
+    "id": "c71d397c-1243-4d9e-b9b2-aa802a096e33",
+    "status": "pending",
+    "size": 363
+  },
+  "f676971a-55a3-4eb8-bb94-b66a494768c1": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-13T21:05:34.269642",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250113_210534_sample.csv",
+    "id": "f676971a-55a3-4eb8-bb94-b66a494768c1",
+    "status": "pending",
+    "size": 363
+  },
+  "90014c42-b755-4c44-94b6-9a4c84c68031": {
+    "filename": "sample.json",
+    "timestamp": "2025-01-14T01:32:32.940901",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250114_013232_sample.json",
+    "id": "90014c42-b755-4c44-94b6-9a4c84c68031",
+    "status": "pending",
+    "size": 1874
+  },
+  "c59a74e9-21b3-4408-96dd-987628578b61": {
+    "filename": "sample.json",
+    "timestamp": "2025-01-14T01:44:45.827610",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250114_014445_sample.json",
+    "id": "c59a74e9-21b3-4408-96dd-987628578b61",
+    "status": "pending",
+    "size": 1874
   }
 }

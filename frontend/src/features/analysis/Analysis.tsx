@@ -1,5 +1,5 @@
 // src/features/analysis/Analysis.tsx
-import { useEffect } from 'react'
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -12,22 +12,15 @@ import GPSMap from './components/GPSMap'
 const Analysis = () => {
   const { 
     currentData, 
-    currentFile, 
-    processedData, 
+    currentFile,
+    metrics,
     isLoading,
     error,
   } = useDataStore();
 
-  // Validate data
-  const isDataValid = currentData && currentData.length > 0 && 
-                     currentData[0]?.timestamp && 
-                     currentData[0]?.gps && 
-                     currentData[0]?.radar;
-
-  const isProcessedDataValid = processedData && 
-                              processedData.summary && 
-                              processedData.timeSeries &&
-                              processedData.timeSeries.points;
+  // State for synced hover
+  const [activeTabValue, setActiveTabValue] = useState("all");
+  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -51,26 +44,26 @@ const Analysis = () => {
     );
   }
 
-  if (!currentFile || !isDataValid) {
+  if (!currentFile || !currentData || !metrics?.flightMetrics || !metrics?.timeSeries || !metrics?.summary) {
     return (
       <div className="p-6 py-20">
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Please select a valid flight data file to analyze.
+            Please select a flight data file to analyze.
           </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  // Calculate duration
-  const startTime = new Date(currentData[0].timestamp);
-  const endTime = new Date(currentData[currentData.length - 1].timestamp);
-  const duration = (endTime.getTime() - startTime.getTime()) / (1000 * 60); // minutes
+  const { flightMetrics, timeSeries, summary } = metrics;
 
-  // Calculate distance
-  const totalDistance = currentData.reduce((sum, d) => sum + d.radar.distance, 0);
+  // Hover sync props for charts
+  const syncHoverProps = activeTabValue === "all" ? {
+    activePoint: hoveredPointIndex,
+    onSync: setHoveredPointIndex
+  } : undefined;
 
   return (
     <div className="space-y-8 p-8 mb-24">
@@ -81,7 +74,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Duration</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{duration.toFixed(1)} min</p>
+            <p className="text-2xl font-bold">{flightMetrics.duration} min</p>
           </CardContent>
         </Card>
         <Card>
@@ -89,7 +82,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Max Altitude</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{processedData?.summary.altitude.max.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{flightMetrics.maxAltitude}m</p>
           </CardContent>
         </Card>
         <Card>
@@ -97,7 +90,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Distance</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{(totalDistance / 1000).toFixed(2)}km</p>
+            <p className="text-2xl font-bold">{flightMetrics.maxDistance}m</p>
           </CardContent>
         </Card>
         <Card>
@@ -105,13 +98,17 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Data Points</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{currentData.length}</p>
+            <p className="text-2xl font-bold">{flightMetrics.totalPoints}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabs Section */}
-      <Tabs defaultValue="all" className="space-y-4">
+      <Tabs 
+        defaultValue="all" 
+        className="space-y-4"
+        value={activeTabValue}
+        onValueChange={setActiveTabValue}
+      >
         <div className="border-b">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="all">All Data</TabsTrigger>
@@ -123,16 +120,20 @@ const Analysis = () => {
 
         <TabsContent value="all" className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-6">
-            {isProcessedDataValid && (
-              <>
-                <div>
-                  <AltitudeChart data={processedData} />
-                </div>
-                <div>
-                  <RadarChart data={processedData} />
-                </div>
-              </>
-            )}
+            <div>
+              <AltitudeChart 
+                timeSeries={timeSeries} 
+                summary={summary} 
+                syncHover={syncHoverProps}
+              />
+            </div>
+            <div>
+              <RadarChart 
+                timeSeries={timeSeries} 
+                summary={summary} 
+                syncHover={syncHoverProps}
+              />
+            </div>
             <div className="col-span-2">
               <Card className="h-[750px]">
                 <GPSMap data={currentData} />
@@ -142,11 +143,11 @@ const Analysis = () => {
         </TabsContent>
 
         <TabsContent value="altitude" className="space-y-4 mt-4">
-          {isProcessedDataValid && <AltitudeChart data={processedData} />}
+          <AltitudeChart timeSeries={timeSeries} summary={summary} />
         </TabsContent>
 
         <TabsContent value="radar" className="space-y-4 mt-4">
-          {isProcessedDataValid && <RadarChart data={processedData} />}
+          <RadarChart timeSeries={timeSeries} summary={summary} />
         </TabsContent>
 
         <TabsContent value="gps" className="space-y-4 mt-4">

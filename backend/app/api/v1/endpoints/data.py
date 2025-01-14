@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, List
 import json
 import csv
-from datetime import datetime
+from datetime import datetime, time
 import logging
 from ....core.config import settings
 
@@ -44,6 +44,31 @@ def get_file_path(file_id: str) -> Path:
     return file_path
 
 
+def time_to_minutes(t: time) -> float:
+    """Convert time to minutes since midnight."""
+    return t.hour * 60 + t.minute + t.second / 60
+
+
+def parse_time(time_str: str) -> time:
+    """Parse time string in HH:MM:SS format."""
+    try:
+        return datetime.strptime(time_str, "%H:%M:%S").time()
+    except ValueError as e:
+        logger.error(f"Error parsing time: {e}")
+        raise ValueError(f"Invalid time format: {time_str}")
+
+
+def calculate_duration(start_time_str: str, end_time_str: str) -> float:
+    """Calculate duration between two time strings in minutes."""
+    start_time = parse_time(start_time_str)
+    end_time = parse_time(end_time_str)
+
+    start_minutes = time_to_minutes(start_time)
+    end_minutes = time_to_minutes(end_time)
+
+    return end_minutes - start_minutes
+
+
 def read_file_content(file_path: Path) -> List[dict]:
     """Read and parse file content based on extension."""
     logger.debug(f"Reading file: {file_path}")
@@ -53,7 +78,6 @@ def read_file_content(file_path: Path) -> List[dict]:
             logger.debug("Processing JSON file")
             with open(file_path, "r") as f:
                 data = json.load(f)
-                # Ensure we return a list
                 if isinstance(data, dict):
                     data = [data]
                 logger.debug(f"Read {len(data)} records from JSON")
@@ -89,11 +113,74 @@ def read_file_content(file_path: Path) -> List[dict]:
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def calculate_metrics(data: List[dict]):
+    """Calculate all metrics for the dataset."""
+    if not data:
+        raise ValueError("No data provided")
+
+    # Basic metrics
+    altitude_values = [d["gps"]["altitude"] for d in data]
+    distance_values = [d["radar"]["distance"] for d in data]
+
+    # Calculate duration
+    total_duration = calculate_duration(data[0]["timestamp"], data[-1]["timestamp"])
+
+    # Calculate time series with proper duration
+    time_series = []
+    start_time = parse_time(data[0]["timestamp"])
+
+    for item in data:
+        current_time = parse_time(item["timestamp"])
+        duration = time_to_minutes(current_time) - time_to_minutes(start_time)
+
+        point = {
+            "duration": round(duration, 2),
+            "altitude": item["gps"]["altitude"],
+            "distance": item["radar"]["distance"],
+            "time": item["timestamp"],
+        }
+        time_series.append(point)
+
+    # Calculate averages
+    avg_altitude = sum(altitude_values) / len(altitude_values)
+    avg_distance = sum(distance_values) / len(distance_values)
+
+    return {
+        "flightMetrics": {
+            "duration": round(total_duration, 2),
+            "maxAltitude": max(altitude_values),
+            "minAltitude": min(altitude_values),
+            "avgAltitude": round(avg_altitude, 2),
+            "maxDistance": max(distance_values),
+            "minDistance": min(distance_values),
+            "avgDistance": round(avg_distance, 2),
+            "totalPoints": len(data),
+            "startTime": data[0]["timestamp"],
+            "endTime": data[-1]["timestamp"],
+        },
+        "timeSeries": time_series,
+        "summary": {
+            "altitude": {
+                "max": max(altitude_values),
+                "min": min(altitude_values),
+                "avg": round(avg_altitude, 2),
+                "change": round(altitude_values[-1] - altitude_values[0], 2),
+            },
+            "radar": {
+                "max": max(distance_values),
+                "min": min(distance_values),
+                "avg": round(avg_distance, 2),
+                "change": round(distance_values[-1] - distance_values[0], 2),
+            },
+        },
+    }
+
+
 @router.get("/{file_id}")
 async def get_data(
     file_id: str,
-    start_time: Optional[datetime] = Query(None),
-    end_time: Optional[datetime] = Query(None),
+    start_time: Optional[time] = Query(None),
+    end_time: Optional[time] = Query(None),
     include_summary: bool = Query(True),
 ):
     """Get processed drone data for a specific file."""
@@ -107,77 +194,13 @@ async def get_data(
         data = read_file_content(file_path)
         logger.debug(f"Read {len(data)} records")
 
-        # Apply time filters if provided
-        if start_time or end_time:
-            filtered_data = []
-            for item in data:
-                item_time = datetime.fromisoformat(
-                    item["timestamp"].replace("Z", "+00:00")
-                )
-                if start_time and item_time < start_time:
-                    continue
-                if end_time and item_time > end_time:
-                    continue
-                filtered_data.append(item)
-            data = filtered_data
-            logger.debug(f"Filtered to {len(data)} records")
-
         if not data:
             raise HTTPException(status_code=404, detail="No data found in file")
 
-        response_data = {"data": data}
+        # Calculate all metrics
+        metrics = calculate_metrics(data)
 
-        # Add summary if requested
-        if include_summary:
-            altitude_values = [d["gps"]["altitude"] for d in data]
-            distance_values = [d["radar"]["distance"] for d in data]
-
-            response_data["summary"] = {
-                "altitude": {
-                    "max": max(altitude_values),
-                    "min": min(altitude_values),
-                    "avg": sum(altitude_values) / len(altitude_values),
-                    "change": f"{altitude_values[-1] - altitude_values[0]:+.1f}",
-                },
-                "radar": {
-                    "max": max(distance_values),
-                    "min": min(distance_values),
-                    "avg": sum(distance_values) / len(distance_values),
-                    "change": f"{distance_values[-1] - distance_values[0]:+.1f}",
-                },
-            }
-
-            # Add time series data
-            timestamps = [
-                datetime.fromisoformat(d["timestamp"].replace("Z", "+00:00"))
-                for d in data
-            ]
-            start_time = min(timestamps)
-
-            time_series_points = []
-            for i, d in enumerate(data):
-                current_time = datetime.fromisoformat(
-                    d["timestamp"].replace("Z", "+00:00")
-                )
-                duration = (current_time - start_time).total_seconds() / 60
-
-                time_series_points.append(
-                    {
-                        "duration": duration,
-                        "altitude": d["gps"]["altitude"],
-                        "distance": d["radar"]["distance"],
-                        "avgAltitude": response_data["summary"]["altitude"]["avg"],
-                        "avgDistance": response_data["summary"]["radar"]["avg"],
-                    }
-                )
-
-            response_data["timeSeries"] = {
-                "points": time_series_points,
-                "averages": {
-                    "altitude": response_data["summary"]["altitude"]["avg"],
-                    "distance": response_data["summary"]["radar"]["avg"],
-                },
-            }
+        response_data = {"data": data, "metrics": metrics}
 
         return JSONResponse(content=response_data)
 

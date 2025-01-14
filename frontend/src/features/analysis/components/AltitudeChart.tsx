@@ -11,10 +11,21 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts'
-import type { ProcessedFlightData } from "@/api/types"
 
-interface AltitudeChartProps {
-  data: ProcessedFlightData;
+interface TimeSeriesPoint {
+  duration: number;
+  altitude: number;
+  distance: number;
+  avgAltitude: number;
+}
+
+interface Summary {
+  altitude: {
+    max: number;
+    min: number;
+    avg: number;
+    change: number;
+  };
 }
 
 interface TooltipProps {
@@ -23,11 +34,23 @@ interface TooltipProps {
   label?: string;
 }
 
-export const AltitudeChart = ({ data }: AltitudeChartProps) => {
-  // Find the max duration from the data
-  const maxDuration = Math.ceil(Math.max(...data.timeSeries.points.map(p => p.duration)));
+interface Props {
+  timeSeries: TimeSeriesPoint[];
+  summary: Summary;
+  syncHover?: {
+    activePoint: number | null;
+    onSync: (index: number | null) => void;
+  };
+}
 
-  // Custom Tooltip
+export const AltitudeChart = ({ timeSeries, summary, syncHover }: Props) => {
+  const maxDuration = Math.ceil(Math.max(...timeSeries.map(point => point.duration)));
+
+  const chartData = timeSeries.map(point => ({
+    ...point,
+    avgAltitudeLine: summary.altitude.avg
+  }));
+
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (!active || !payload || !payload.length) return null;
 
@@ -55,22 +78,22 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
         <div className="grid grid-cols-4 gap-4 mt-2">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Maximum</p>
-            <p className="text-2xl font-bold">{data.summary.altitude.max.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{summary.altitude.max}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Minimum</p>
-            <p className="text-2xl font-bold">{data.summary.altitude.min.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{summary.altitude.min}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Average</p>
-            <p className="text-2xl font-bold">{data.summary.altitude.avg.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{summary.altitude.avg}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Change</p>
             <p className={`text-2xl font-bold ${
-              data.summary.altitude.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
+              summary.altitude.change >= 0 ? 'text-emerald-600' : 'text-red-600'
             }`}>
-              {data.summary.altitude.change}%
+              {summary.altitude.change}m
             </p>
           </div>
         </div>
@@ -78,16 +101,26 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
-            data={data.timeSeries.points}
+            data={chartData}
             margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+            onMouseMove={(state) => {
+              if (syncHover && state?.activeTooltipIndex !== undefined) {
+                syncHover.onSync(state.activeTooltipIndex);
+              }
+            }}
+            onMouseLeave={() => {
+              if (syncHover) {
+                syncHover.onSync(null);
+              }
+            }}
           >
             <defs>
               <linearGradient id="colorAltitude" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#8884d8" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor="#FF8C42" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#FF8C42" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
               dataKey="duration"
               type="number"
@@ -113,7 +146,10 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
                 style: { fontSize: 12 }
               }}
             />
-            <Tooltip content={CustomTooltip} />
+            <Tooltip 
+              content={CustomTooltip}
+              active={syncHover ? syncHover.activePoint !== null : undefined}
+            />
             <Legend 
               verticalAlign="top"
               height={36}
@@ -122,7 +158,7 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
               type="monotone"
               dataKey="altitude"
               name="Current Altitude"
-              stroke="#8884d8"
+              stroke="#FF8C42"
               fill="url(#colorAltitude)"
               fillOpacity={1}
               strokeWidth={2}
@@ -130,11 +166,12 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
             />
             <Line
               type="monotone"
-              dataKey="avgAltitude"
+              dataKey="avgAltitudeLine"
               name="Average Altitude"
-              stroke="#82ca9d"
+              stroke="#A64AC9"
               dot={false}
               strokeWidth={2}
+              strokeDasharray="5 5"
               isAnimationActive={false}
             />
           </ComposedChart>
@@ -143,5 +180,3 @@ export const AltitudeChart = ({ data }: AltitudeChartProps) => {
     </Card>
   );
 };
-
-export default AltitudeChart;

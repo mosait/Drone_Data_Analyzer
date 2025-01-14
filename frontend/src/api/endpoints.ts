@@ -4,7 +4,7 @@ import { transformDroneData } from '@/utils/data-transformers';
 import type { 
   FileUploadResponse, 
   DroneData, 
-  ProcessedFlightData 
+  ProcessedData 
 } from '@/api/types';
 
 export const api = {
@@ -27,30 +27,12 @@ export const api = {
   },
 
   data: {
-    get: async (fileId: string): Promise<DroneData[]> => {
+    get: async (fileId: string): Promise<ProcessedData> => {
       try {
-        const { data } = await apiClient.get(`/api/v1/data/${fileId}`);
-        const transformedData = transformDroneData(data);
-        return transformedData;
-      } catch (error) {
-        console.error('Error in data.get:', error);
-        throw error;
-      }
-    }
-  },
-
-  flightData: {
-    getProcessedData: async (fileId: string): Promise<ProcessedFlightData> => {
-      try {
-        const { data } = await apiClient.get(`/api/v1/data/${fileId}?include_summary=true`);
-        
-        if (!data || !data.data || !Array.isArray(data.data)) {
-          throw new Error('Invalid data format received');
-        }
-
+        const { data } = await apiClient.get<ProcessedData>(`/api/v1/data/${fileId}`);
         return data;
       } catch (error) {
-        console.error('Error in flightData.getProcessedData:', error);
+        console.error('Error in data.get:', error);
         throw error;
       }
     }
@@ -59,13 +41,13 @@ export const api = {
   analysis: {
     export: async (fileId: string, format: 'csv' | 'json'): Promise<Blob> => {
       try {
-        const response = await apiClient.get<{ data: DroneData[] }>(`/api/v1/data/${fileId}`);
-        const data = response.data.data;
+        const response = await apiClient.get<ProcessedData>(`/api/v1/data/${fileId}`);
+        const droneData = response.data.data;
 
         if (format === 'csv') {
-          return createCSVBlob(data);
+          return createCSVBlob(droneData);
         } else {
-          return createJSONBlob(data);
+          return createJSONBlob(droneData);
         }
       } catch (error) {
         console.error('Export error:', error);
@@ -76,12 +58,7 @@ export const api = {
 };
 
 function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  return dateStr; // Time is already in HH:MM:SS format
 }
 
 function createCSVBlob(data: DroneData[]): Blob {
@@ -90,7 +67,7 @@ function createCSVBlob(data: DroneData[]): Blob {
   
   // Create CSV rows
   const rows = data.map(item => [
-    formatTime(item.timestamp),
+    item.timestamp,
     item.gps.latitude,
     item.gps.longitude,
     item.gps.altitude,
@@ -107,20 +84,8 @@ function createCSVBlob(data: DroneData[]): Blob {
 }
 
 function createJSONBlob(data: DroneData[]): Blob {
-  const formattedData = data.map(item => ({
-    timestamp: formatTime(item.timestamp),
-    gps: {
-      latitude: item.gps.latitude,
-      longitude: item.gps.longitude,
-      altitude: item.gps.altitude
-    },
-    radar: {
-      distance: item.radar.distance
-    }
-  }));
-
   return new Blob(
-    [JSON.stringify(formattedData, null, 2)], 
+    [JSON.stringify(data, null, 2)], 
     { type: 'application/json;charset=utf-8;' }
   );
 }

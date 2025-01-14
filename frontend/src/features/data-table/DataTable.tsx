@@ -30,7 +30,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 
 export default function DataTable() {
-  const { currentData, isLoading, error } = useDataStore();
+  const { currentData, metrics, isLoading, error } = useDataStore();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -56,13 +56,13 @@ export default function DataTable() {
     if (!currentData?.length) return;
     
     // Create CSV content
-    const headers = ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Radar Distance (m)'];
+    const headers = ['timestamp', 'latitude', 'longitude', 'altitude', 'radar_distance'];
     const rows = currentData.map(row => [
-      new Date(row.timestamp).toLocaleString(),
-      row.gps?.latitude.toFixed(6),
-      row.gps?.longitude.toFixed(6),
-      row.gps?.altitude.toFixed(1),
-      row.radar?.distance.toFixed(1)
+      row.timestamp,
+      row.gps.latitude.toFixed(6),
+      row.gps.longitude.toFixed(6),
+      row.gps.altitude,
+      row.radar.distance
     ]);
     
     const csv = [
@@ -84,10 +84,10 @@ export default function DataTable() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <div className="text-center space-y-4">
           <Loader className="w-8 h-8 animate-spin mx-auto" />
-          <p className="text-lg">Loading data...</p>
+          <p className="text-lg">Loading...</p>
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ export default function DataTable() {
 
   if (error) {
     return (
-      <div className="p-6 py-20">
+      <div className="p-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
@@ -106,7 +106,7 @@ export default function DataTable() {
 
   if (!currentData || currentData.length === 0) {
     return (
-      <div className="p-6 py-20">
+      <div className="p-6">
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
@@ -118,7 +118,45 @@ export default function DataTable() {
   }
 
   return (
-    <div className="space-y-4 p-8 py-20">
+    <div className="space-y-4 p-8">
+      {/* Flight Metrics Summary */}
+      {metrics?.flightMetrics && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Flight Duration</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold">{metrics.flightMetrics.duration} min</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Max Altitude</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold">{metrics.flightMetrics.maxAltitude} m</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Avg Distance</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold">{metrics.flightMetrics.avgDistance} m</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="p-4">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Data Points</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <p className="text-2xl font-bold">{metrics.flightMetrics.totalPoints}</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Flight Data</CardTitle>
@@ -136,7 +174,7 @@ export default function DataTable() {
           <div className="flex items-center py-4">
             <Search className="h-4 w-4 mr-2 text-muted-foreground" />
             <Input
-              placeholder="Search all columns..."
+              placeholder="Search..."
               value={globalFilter ?? ""}
               onChange={(event) => setGlobalFilter(event.target.value)}
               className="max-w-sm"
@@ -177,7 +215,7 @@ export default function DataTable() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={columns.length} className="h-24 text-center">
-                      No data available
+                      No results
                     </TableCell>
                   </TableRow>
                 )}
@@ -186,7 +224,7 @@ export default function DataTable() {
           </div>
           <div className="flex items-center justify-between space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground">
-              {table.getFilteredRowModel().rows.length} row(s) total.
+              {table.getFilteredRowModel().rows.length} row(s) total
             </div>
             <div className="space-x-2">
               <Button

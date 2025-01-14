@@ -1,70 +1,56 @@
 // src/api/types.ts
-export interface DroneData {
-  timestamp: string;
-  gps: {
-    latitude: number;
-    longitude: number;
-    altitude: number;
-  };
-  radar: {
-    distance: number;
-  };
-}
 
-export interface DroneDataRow {
-  time: string;
+export interface GPSData {
   latitude: number;
   longitude: number;
   altitude: number;
-  radar_distance: number;
+}
+
+export interface RadarData {
+  distance: number;
+}
+
+export interface DroneData {
+  timestamp: string;  // Format: HH:MM:SS
+  gps: GPSData;
+  radar: RadarData;
+}
+
+export interface FlightMetrics {
+  duration: number;
+  maxAltitude: number;
+  minAltitude: number;
+  avgAltitude: number;
+  maxDistance: number;
+  minDistance: number;
+  avgDistance: number;
+  totalPoints: number;
+  startTime: string;
+  endTime: string;
 }
 
 export interface StatsSummary {
   max: number;
   min: number;
   avg: number;
-  change: string;
+  change: number;
 }
 
 export interface TimeSeriesPoint {
   duration: number;
   altitude: number;
   distance: number;
-  avgAltitude: number;
-  avgDistance: number;
+  time: string;
 }
 
-export interface ProcessedFlightData {
-  summary: {
-    altitude: StatsSummary;
-    radar: StatsSummary;
-  };
-  timeSeries: {
-    points: TimeSeriesPoint[];
-    averages: {
-      altitude: number;
-      distance: number;
-    };
-  };
-}
-
-export interface FlightDataResponse {
-  data: ProcessedFlightData;
-}
-
-// This matches the actual backend response structure
-export interface FlightDataResponse {
-  data: {
+export interface ProcessedData {
+  data: DroneData[];
+  metrics: {
+    flightMetrics: FlightMetrics;
+    timeSeries: TimeSeriesPoint[];
     summary: {
       altitude: StatsSummary;
       radar: StatsSummary;
-    };
-    timeSeries: {
-      points: TimeSeriesPoint[];
-      averages: {
-        altitude: number;
-        distance: number;
-      };
     };
   };
 }
@@ -74,9 +60,4 @@ export interface FileUploadResponse {
   filename: string;
   timestamp: string;
   status: 'success' | 'error' | 'processing';
-}
-
-export interface DirectoryWatchResponse {
-  success: boolean;
-  path: string;
 }

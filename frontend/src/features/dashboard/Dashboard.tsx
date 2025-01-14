@@ -1,6 +1,5 @@
 // src/features/dashboard/Dashboard.tsx
 import { useEffect } from 'react';
-import { api } from '@/api/endpoints';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileType, Download, Clock } from 'lucide-react';
@@ -15,6 +14,7 @@ import { ExportDialog } from '@/components/shared/ExportDialog';
 export default function Dashboard() {
   const { 
     currentData, 
+    metrics,
     uploadFile, 
     recentFiles, 
     selectedFile, 
@@ -41,24 +41,6 @@ export default function Dashboard() {
       await uploadFile(file);
     } catch (error) {
       console.error('Upload error:', error);
-    }
-  };
-
-  const handleExport = async (format: 'csv' | 'json') => {
-    if (!selectedFile) return;
-    
-    try {
-      const blob = await api.analysis.export(selectedFile.id, format);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `drone_data_${selectedFile.id}.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Export error:', error);
     }
   };
 
@@ -112,25 +94,30 @@ export default function Dashboard() {
               <CardTitle>Current Flight Metrics</CardTitle>
             </CardHeader>
             <CardContent>
-              {Array.isArray(currentData) && currentData.length > 0 ? (
+              {Array.isArray(currentData) && currentData.length > 0 && metrics?.flightMetrics ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Max Altitude</p>
                     <p className="text-2xl font-bold">
-                      {Math.max(...currentData.map(d => d.gps.altitude))}m
+                      {metrics.flightMetrics.maxAltitude}m
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Flight Duration</p>
                     <p className="text-2xl font-bold">
-                      {((new Date(currentData[currentData.length - 1].timestamp).getTime() -
-                        new Date(currentData[0].timestamp).getTime()) / 60000).toFixed(1)}min
+                      {metrics.flightMetrics.duration}min
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Distance</p>
+                    <p className="text-sm text-muted-foreground">Avg Distance</p>
                     <p className="text-2xl font-bold">
-                      {currentData.reduce((sum, d) => sum + d.radar.distance, 0).toFixed(1)}m
+                      {metrics.flightMetrics.avgDistance}m
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Data Points</p>
+                    <p className="text-2xl font-bold">
+                      {metrics.flightMetrics.totalPoints}
                     </p>
                   </div>
                 </div>
@@ -162,7 +149,10 @@ export default function Dashboard() {
                   <Upload className="h-5 w-5" />
                   Upload New File
                 </Button>
-                <ExportDialog selectedFile={selectedFile} disabled={!selectedFile} />
+                <ExportDialog
+                  selectedFile={selectedFile}
+                  disabled={!selectedFile}
+                />
               </div>
             </CardContent>
           </Card>
@@ -182,8 +172,10 @@ export default function Dashboard() {
                     <Button
                       key={file.id}
                       variant="ghost"
-                      className="w-full flex items-center justify-between p-2 h-auto"
-                      onClick={() => selectFile(file)} 
+                      className={`w-full flex items-center justify-between p-2 h-auto ${
+                        selectedFile?.id === file.id ? 'bg-primary/10' : ''
+                      }`}
+                      onClick={() => selectFile(file)}
                     >
                       <div className="flex items-center gap-2">
                         <FileType className="h-4 w-4 text-primary" />

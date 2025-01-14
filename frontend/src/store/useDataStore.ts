@@ -3,15 +3,20 @@ import { create } from 'zustand';
 import { api } from '../api/endpoints';
 import type { 
   DroneData, 
-  FileUploadResponse, 
-  ProcessedFlightData 
+  FileUploadResponse,
+  ProcessedData,
+  FlightMetrics
 } from '../api/types';
 
 interface DataState {
   selectedFile: FileUploadResponse | null;
   currentFile: FileUploadResponse | null;
   currentData: DroneData[] | null;
-  processedData: ProcessedFlightData | null;
+  metrics: {
+    flightMetrics: FlightMetrics | null;
+    timeSeries: any[] | null;
+    summary: any | null;
+  } | null;
   recentFiles: FileUploadResponse[];
   error: string | null;
   isLoading: boolean;
@@ -32,7 +37,7 @@ const initialState: DataState = {
   selectedFile: null,
   currentFile: null,
   currentData: null,
-  processedData: null,
+  metrics: null,
   recentFiles: [],
   error: null,
   isLoading: false,
@@ -52,16 +57,12 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       
-      // Load raw data
-      const rawData = await api.data.get(file.id);
-      
-      // Load processed data
-      const processedResponse = await api.flightData.getProcessedData(file.id);
+      const processedData = await api.data.get(file.id);
       
       set({ 
         currentFile: file, 
-        currentData: rawData, 
-        processedData: processedResponse,
+        currentData: processedData.data,
+        metrics: processedData.metrics,
         error: null
       });
     } catch (error) {
@@ -69,7 +70,7 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       set({ 
         error: error instanceof Error ? error.message : 'Failed to load file data',
         currentData: null,
-        processedData: null
+        metrics: null
       });
     } finally {
       set({ isLoading: false });
@@ -107,7 +108,7 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       set({ 
         error: error instanceof Error ? error.message : 'Failed to upload file',
         currentData: null,
-        processedData: null
+        metrics: null
       });
     } finally {
       set({ isLoading: false });
@@ -119,14 +120,12 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
     try {
       set({ isLoading: true, selectedFile: file });
       
-      // Load data for the selected file
-      const rawData = await api.data.get(file.id);
-      const processedResponse = await api.flightData.getProcessedData(file.id);
+      const processedData = await api.data.get(file.id);
       
       set({ 
-        currentFile: file, 
-        currentData: rawData, 
-        processedData: processedResponse,
+        currentFile: file,
+        currentData: processedData.data,
+        metrics: processedData.metrics,
         error: null
       });
     } catch (error) {
@@ -134,7 +133,7 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       set({ 
         error: error instanceof Error ? error.message : 'Failed to load file data',
         currentData: null,
-        processedData: null
+        metrics: null
       });
     } finally {
       set({ isLoading: false });

@@ -1,8 +1,8 @@
 // src/features/data-table/columns.tsx
 import { ColumnDef } from "@tanstack/react-table"
+import { DroneData } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
-import { DroneData } from '@/api/types';
 
 export const columns: ColumnDef<DroneData>[] = [
   {
@@ -19,9 +19,8 @@ export const columns: ColumnDef<DroneData>[] = [
       )
     },
     cell: ({ row }) => {
-      // Format the timestamp to be more readable
-      const timestamp = row.getValue<string>("timestamp");
-      return timestamp ? new Date(timestamp).toLocaleTimeString() : 'N/A';
+      // Time is already in HH:MM:SS format from backend
+      return row.getValue("timestamp")
     },
   },
   {
@@ -38,8 +37,8 @@ export const columns: ColumnDef<DroneData>[] = [
       )
     },
     cell: ({ row }) => {
-      const latitude = row.original.gps?.latitude;
-      return latitude !== undefined ? latitude.toFixed(6) : 'N/A';
+      const latitude = row.original.gps?.latitude
+      return latitude !== undefined ? latitude.toFixed(6) : 'N/A'
     },
   },
   {
@@ -56,8 +55,8 @@ export const columns: ColumnDef<DroneData>[] = [
       )
     },
     cell: ({ row }) => {
-      const longitude = row.original.gps?.longitude;
-      return longitude !== undefined ? longitude.toFixed(6) : 'N/A';
+      const longitude = row.original.gps?.longitude
+      return longitude !== undefined ? longitude.toFixed(6) : 'N/A'
     },
   },
   {
@@ -74,8 +73,8 @@ export const columns: ColumnDef<DroneData>[] = [
       )
     },
     cell: ({ row }) => {
-      const altitude = row.original.gps?.altitude;
-      return altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A';
+      const altitude = row.original.gps?.altitude
+      return altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A'
     },
   },
   {
@@ -86,14 +85,14 @@ export const columns: ColumnDef<DroneData>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Radar Distance (m)
+          Distance (m)
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
     cell: ({ row }) => {
-      const distance = row.original.radar?.distance;
-      return distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A';
+      const distance = row.original.radar?.distance
+      return distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A'
     },
   },
-];
+]

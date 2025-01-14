@@ -11,10 +11,22 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts'
-import type { ProcessedFlightData } from "@/api/types"
 
-interface RadarChartProps {
-  data: ProcessedFlightData;
+interface TimeSeriesPoint {
+  duration: number;
+  altitude: number;
+  distance: number;
+  avgAltitude: number;
+  avgDistance: number;
+}
+
+interface Summary {
+  radar: {
+    max: number;
+    min: number;
+    avg: number;
+    change: number;
+  };
 }
 
 interface TooltipProps {
@@ -23,11 +35,23 @@ interface TooltipProps {
   label?: string;
 }
 
-export const RadarChart = ({ data }: RadarChartProps) => {
-  // Find the max duration from the data
-  const maxDuration = Math.ceil(Math.max(...data.timeSeries.points.map(p => p.duration)));
+interface Props {
+  timeSeries: TimeSeriesPoint[];
+  summary: Summary;
+  syncHover?: {
+    activePoint: number | null;
+    onSync: (index: number | null) => void;
+  };
+}
 
-  // Custom Tooltip
+export const RadarChart = ({ timeSeries, summary, syncHover }: Props) => {
+  const maxDuration = Math.ceil(Math.max(...timeSeries.map(point => point.duration)));
+
+  const chartData = timeSeries.map(point => ({
+    ...point,
+    avgDistance: summary.radar.avg
+  }));
+
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (!active || !payload || !payload.length) return null;
 
@@ -55,22 +79,22 @@ export const RadarChart = ({ data }: RadarChartProps) => {
         <div className="grid grid-cols-4 gap-4 mt-2">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Maximum</p>
-            <p className="text-2xl font-bold">{data.summary.radar.max.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{summary.radar.max}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Minimum</p>
-            <p className="text-2xl font-bold">{data.summary.radar.min.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{summary.radar.min}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Average</p>
-            <p className="text-2xl font-bold">{data.summary.radar.avg.toFixed(1)}m</p>
+            <p className="text-2xl font-bold">{summary.radar.avg}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Change</p>
             <p className={`text-2xl font-bold ${
-              data.summary.radar.change.startsWith('+') ? 'text-emerald-600' : 'text-red-600'
+              summary.radar.change >= 0 ? 'text-emerald-600' : 'text-red-600'
             }`}>
-              {data.summary.radar.change}%
+              {summary.radar.change}m
             </p>
           </div>
         </div>
@@ -78,16 +102,26 @@ export const RadarChart = ({ data }: RadarChartProps) => {
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
-            data={data.timeSeries.points}
+            data={chartData}
             margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+            onMouseMove={(state) => {
+              if (syncHover && state?.activeTooltipIndex !== undefined) {
+                syncHover.onSync(state.activeTooltipIndex);
+              }
+            }}
+            onMouseLeave={() => {
+              if (syncHover) {
+                syncHover.onSync(null);
+              }
+            }}
           >
             <defs>
               <linearGradient id="colorDistance" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#0088FE" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#0088FE" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor="#FF8C42" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#FF8C42" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis 
               dataKey="duration"
               type="number"
@@ -113,7 +147,10 @@ export const RadarChart = ({ data }: RadarChartProps) => {
                 style: { fontSize: 12 }
               }}
             />
-            <Tooltip content={CustomTooltip} />
+            <Tooltip 
+              content={CustomTooltip}
+              active={syncHover ? syncHover.activePoint !== null : undefined}
+            />
             <Legend 
               verticalAlign="top"
               height={36}
@@ -122,7 +159,7 @@ export const RadarChart = ({ data }: RadarChartProps) => {
               type="monotone"
               dataKey="distance"
               name="Current Distance"
-              stroke="#0088FE"
+              stroke="#FF8C42"
               fill="url(#colorDistance)"
               fillOpacity={1}
               strokeWidth={2}
@@ -132,9 +169,10 @@ export const RadarChart = ({ data }: RadarChartProps) => {
               type="monotone"
               dataKey="avgDistance"
               name="Average Distance"
-              stroke="#82ca9d"
+              stroke="#A64AC9"
               dot={false}
               strokeWidth={2}
+              strokeDasharray="5 5"
               isAnimationActive={false}
             />
           </ComposedChart>
@@ -143,5 +181,3 @@ export const RadarChart = ({ data }: RadarChartProps) => {
     </Card>
   );
 };
-
-export default RadarChart;
