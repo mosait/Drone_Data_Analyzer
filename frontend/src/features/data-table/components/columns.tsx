@@ -1,122 +1,221 @@
-// src/features/data-table/components/columns.tsx
+// src/components/columns.tsx
 import { ColumnDef } from "@tanstack/react-table"
 import { DroneData } from "@/api/types"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown } from "lucide-react"
+import { Input } from "@/components/ui/input"
+
+// Common header button class
+const headerButtonClass = "w-full justify-center font-semibold"
+const columnClass = "w-[200px]" // Fixed width for all columns
+
+// Helper function to parse number comparison
+const parseNumberComparison = (value: string) => {
+  const ops = ['<=', '>=', '<', '>', '='];
+  let operator = '=';
+  let number = value;
+
+  // Find the operator if it exists
+  for (const op of ops) {
+    if (value.startsWith(op)) {
+      operator = op;
+      number = value.substring(op.length);
+      break;
+    }
+  }
+
+  const num = parseFloat(number);
+  if (isNaN(num)) return null;
+
+  return { operator, number: num };
+};
+
+// Custom filter function for numeric values
+const numericFilter = (value: number, filterValue: string): boolean => {
+  const comparison = parseNumberComparison(filterValue);
+  if (!comparison) return true;
+
+  switch (comparison.operator) {
+    case '<=': return value <= comparison.number;
+    case '>=': return value >= comparison.number;
+    case '<': return value < comparison.number;
+    case '>': return value > comparison.number;
+    case '=': return value === comparison.number;
+    default: return true;
+  }
+};
 
 export const columns: ColumnDef<DroneData>[] = [
-  {
-    accessorKey: "timestamp",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Time
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-      return row.getValue("timestamp")
-    },
-  },
   {
     id: "waypoint",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Waypoint
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
+        <div className={`text-center ${columnClass}`}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className={`${headerButtonClass} flex items-center justify-center gap-1`} // Added gap-1
+          >
+            <span className="inline-block">Waypoint</span>
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
+      );
     },
+    
     cell: ({ row, table }) => {
-      // Get row index within the current page
       const pageIndex = table.getState().pagination.pageIndex;
       const pageSize = table.getState().pagination.pageSize;
       const rowIndex = row.index;
       const globalIndex = pageIndex * pageSize + rowIndex;
-      return `#${globalIndex + 1}`;
+      return (
+        <div className={`text-center ${columnClass}`}>
+          <span className="inline-block w-[40px]">{`#${globalIndex + 1}`}</span>
+        </div>
+      );
     },
     sortingFn: (rowA, rowB) => {
       return rowA.index - rowB.index;
     },
   },
   {
-    accessorKey: "gps.latitude",
+    accessorKey: "timestamp",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Latitude
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <div className={`text-center ${columnClass}`}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className={headerButtonClass}
+          >
+            Time
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       )
     },
     cell: ({ row }) => {
-      const latitude = row.original.gps?.latitude
-      return latitude !== undefined ? latitude.toFixed(6) : 'N/A'
+      return <div className={`text-center ${columnClass}`}>{row.getValue("timestamp")}</div>;
+    },
+  },
+  {
+    accessorKey: "gps.latitude",
+    header: ({ column }) => {
+      return (
+        <div className={`text-center ${columnClass}`}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className={headerButtonClass}
+          >
+            Latitude
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      )
+    },
+    cell: ({ row }) => {
+      const latitude = row.original.gps?.latitude;
+      return (
+        <div className={`text-center ${columnClass}`}>
+          {latitude !== undefined ? latitude.toFixed(6) : 'N/A'}
+        </div>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const value = row.original.gps?.latitude;
+      if (value === undefined) return true;
+      return numericFilter(value, filterValue);
     },
   },
   {
     accessorKey: "gps.longitude",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Longitude
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <div className={`text-center ${columnClass}`}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className={headerButtonClass}
+          >
+            Longitude
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       )
     },
     cell: ({ row }) => {
-      const longitude = row.original.gps?.longitude
-      return longitude !== undefined ? longitude.toFixed(6) : 'N/A'
+      const longitude = row.original.gps?.longitude;
+      return (
+        <div className={`text-center ${columnClass}`}>
+          {longitude !== undefined ? longitude.toFixed(6) : 'N/A'}
+        </div>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const value = row.original.gps?.longitude;
+      if (value === undefined) return true;
+      return numericFilter(value, filterValue);
     },
   },
   {
     accessorKey: "gps.altitude",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Altitude (m)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <div className={`text-center ${columnClass}`}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className={headerButtonClass}
+          >
+            Altitude (m)
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       )
     },
     cell: ({ row }) => {
-      const altitude = row.original.gps?.altitude
-      return altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A'
+      const altitude = row.original.gps?.altitude;
+      return (
+        <div className={`text-center ${columnClass}`}>
+          {altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A'}
+        </div>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const value = row.original.gps?.altitude;
+      if (value === undefined) return true;
+      return numericFilter(value, filterValue);
     },
   },
   {
     accessorKey: "radar.distance",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Distance (m)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <div className={`text-center ${columnClass}`}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className={headerButtonClass}
+          >
+            Distance (m)
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       )
     },
     cell: ({ row }) => {
-      const distance = row.original.radar?.distance
-      return distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A'
+      const distance = row.original.radar?.distance;
+      return (
+        <div className={`text-center ${columnClass}`}>
+          {distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A'}
+        </div>
+      );
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const value = row.original.radar?.distance;
+      if (value === undefined) return true;
+      return numericFilter(value, filterValue);
     },
   },
 ]

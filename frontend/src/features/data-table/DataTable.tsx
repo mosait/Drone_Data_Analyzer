@@ -23,7 +23,7 @@ import {
   ColumnFiltersState,
 } from "@tanstack/react-table";
 import { Download, Search, Loader, Filter } from 'lucide-react';
-import { columns } from './components/columns';
+import { columns } from './components/Columns';
 import {
   Select,
   SelectContent,
