@@ -1,5 +1,5 @@
 // src/features/analysis/components/AltitudeChart.tsx
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   ComposedChart,
   Area,
@@ -10,7 +10,8 @@ import {
   Tooltip, 
   ResponsiveContainer,
   Legend
-} from 'recharts'
+} from 'recharts';
+import { ChartWrapper } from './ChartWrapper';
 
 interface TimeSeriesPoint {
   duration: number;
@@ -38,8 +39,9 @@ interface Props {
   timeSeries: TimeSeriesPoint[];
   summary: Summary;
   syncHover?: {
-    activePoint: number | null;
-    onSync: (index: number | null) => void;
+    activeTooltipIndex: number | null;
+    onHover: (state: any) => void;
+    syncState: any;
   };
 }
 
@@ -99,83 +101,91 @@ export const AltitudeChart = ({ timeSeries, summary, syncHover }: Props) => {
         </div>
       </CardHeader>
       <CardContent className="h-[400px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
-            onMouseMove={(state) => {
-              if (syncHover && state?.activeTooltipIndex !== undefined) {
-                syncHover.onSync(state.activeTooltipIndex);
-              }
-            }}
-            onMouseLeave={() => {
-              if (syncHover) {
-                syncHover.onSync(null);
-              }
-            }}
-          >
-            <defs>
-              <linearGradient id="colorAltitude" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FF8C42" stopOpacity={0.4}/>
-                <stop offset="95%" stopColor="#FF8C42" stopOpacity={0.1}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="duration"
-              type="number"
-              domain={[0, maxDuration]}
-              tick={{ fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-              label={{ 
-                value: 'Duration (minutes)', 
-                position: 'bottom',
-                offset: 0,
-                style: { fontSize: 12 }
+        <ChartWrapper onSync={syncHover?.onHover} syncState={syncHover?.syncState || { activeIndex: null, mouseX: 0, mouseY: 0 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart
+              className="synchronized-chart altitude-chart"
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+              onMouseMove={(state) => {
+                if (syncHover && typeof state?.activeTooltipIndex === 'number') {
+                  syncHover.onHover({
+                    activeIndex: state.activeTooltipIndex,
+                    mouseX: state.chartX,
+                    mouseY: state.chartY
+                  });
+                }
               }}
-            />
-            <YAxis 
-              tick={{ fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
-              label={{ 
-                value: 'Altitude (m)', 
-                angle: -90, 
-                position: 'insideLeft',
-                style: { fontSize: 12 }
+              onMouseLeave={() => {
+                if (syncHover) {
+                  syncHover.onHover(null);
+                }
               }}
-            />
-            <Tooltip 
-              content={CustomTooltip}
-              active={syncHover ? syncHover.activePoint !== null : undefined}
-            />
-            <Legend 
-              verticalAlign="top"
-              height={36}
-            />
-            <Area
-              type="monotone"
-              dataKey="altitude"
-              name="Current Altitude"
-              stroke="#FF8C42"
-              fill="url(#colorAltitude)"
-              fillOpacity={1}
-              strokeWidth={2}
-              isAnimationActive={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="avgAltitudeLine"
-              name="Average Altitude"
-              stroke="#A64AC9"
-              dot={false}
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              isAnimationActive={false}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
+            >
+              <defs>
+                <linearGradient id="colorAltitude" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF8C42" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#FF8C42" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="duration"
+                type="number"
+                domain={[0, maxDuration]}
+                tick={{ fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                label={{ 
+                  value: 'Duration (minutes)', 
+                  position: 'bottom',
+                  offset: 0,
+                  style: { fontSize: 12 }
+                }}
+              />
+              <YAxis 
+                tick={{ fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                label={{ 
+                  value: 'Altitude (m)', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { fontSize: 12 }
+                }}
+              />
+              <Tooltip 
+                content={CustomTooltip}
+                cursor={{ stroke: '#666', strokeWidth: 1 }}
+                active={syncHover?.activeTooltipIndex !== null}
+              />
+              <Legend 
+                verticalAlign="top"
+                height={36}
+              />
+              <Area
+                type="monotone"
+                dataKey="altitude"
+                name="Current Altitude"
+                stroke="#FF8C42"
+                fill="url(#colorAltitude)"
+                fillOpacity={1}
+                strokeWidth={2}
+                isAnimationActive={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="avgAltitudeLine"
+                name="Average Altitude"
+                stroke="#A64AC9"
+                dot={false}
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                isAnimationActive={false}
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </ChartWrapper>
       </CardContent>
     </Card>
   );

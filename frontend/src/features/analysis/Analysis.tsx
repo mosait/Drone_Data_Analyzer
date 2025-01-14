@@ -1,13 +1,26 @@
-// src/features/analysis/Analysis.tsx
+// Analysis.tsx
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertCircle, Loader } from 'lucide-react'
-import { useDataStore } from '@/store/useDataStore'
-import { AltitudeChart } from './components/AltitudeChart'
-import { RadarChart } from './components/RadarChart'
-import GPSMap from './components/GPSMap'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertCircle, Loader } from 'lucide-react';
+import { useDataStore } from '@/store/useDataStore';
+import { AltitudeChart } from './components/AltitudeChart';
+import { RadarChart } from './components/RadarChart';
+import GPSMap from './components/GPSMap';
+
+// Define interfaces for chart synchronization
+interface ChartSyncState {
+  activeIndex: number | null;
+  mouseX: number;
+  mouseY: number;
+}
+
+interface SyncHoverProps {
+  activeTooltipIndex: number | null;
+  onHover: (state: ChartSyncState | null) => void;
+  syncState: ChartSyncState;
+}
 
 const Analysis = () => {
   const { 
@@ -18,9 +31,29 @@ const Analysis = () => {
     error,
   } = useDataStore();
 
-  // State for synced hover
   const [activeTabValue, setActiveTabValue] = useState("all");
-  const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
+  const [syncedChartState, setSyncedChartState] = useState<ChartSyncState>({
+    activeIndex: null,
+    mouseX: 0,
+    mouseY: 0
+  });
+
+  // Configure chart synchronization props
+  const syncHoverProps: SyncHoverProps = {
+    activeTooltipIndex: syncedChartState.activeIndex,
+    syncState: syncedChartState,
+    onHover: (state: ChartSyncState | null) => {
+      if (state) {
+        setSyncedChartState(state);
+      } else {
+        setSyncedChartState({
+          activeIndex: null,
+          mouseX: 0,
+          mouseY: 0
+        });
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -59,15 +92,9 @@ const Analysis = () => {
 
   const { flightMetrics, timeSeries, summary } = metrics;
 
-  // Hover sync props for charts
-  const syncHoverProps = activeTabValue === "all" ? {
-    activePoint: hoveredPointIndex,
-    onSync: setHoveredPointIndex
-  } : undefined;
-
   return (
     <div className="space-y-8 p-8 mb-24">
-      {/* Summary Section */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="p-4">
@@ -103,6 +130,7 @@ const Analysis = () => {
         </Card>
       </div>
 
+      {/* Analysis Tabs */}
       <Tabs 
         defaultValue="all" 
         className="space-y-4"

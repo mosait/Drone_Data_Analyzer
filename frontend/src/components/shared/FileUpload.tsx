@@ -1,8 +1,7 @@
 // src/components/shared/FileUpload.tsx
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Upload, FileType, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Alert, AlertDescription } from '../ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FileUploadProps {
   onFileAccepted: (file: File) => Promise<void>;
@@ -18,6 +17,13 @@ export const FileUpload = ({
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      setIsUploading(false);
+      setError(null);
+    };
+  }, []);
 
   const validateFile = (file: File): string | null => {
     if (file.size > maxSize * 1024 * 1024) {
@@ -43,6 +49,9 @@ export const FileUpload = ({
       setIsUploading(true);
       setError(null);
       await onFileAccepted(file);
+      // Reset state after successful upload
+      setIsUploading(false);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload file');
     } finally {

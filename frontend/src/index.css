@@ -74,6 +74,27 @@
   background-color: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
 }
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.synchronized-chart {
+  cursor: crosshair;
+}
+
+.recharts-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.recharts-tooltip-wrapper {
+  z-index: 1000;
+}
 
 @tailwind base;
 @tailwind components;

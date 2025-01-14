@@ -1,5 +1,5 @@
 // src/features/dashboard/Dashboard.tsx
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileType, Download, Clock } from 'lucide-react';
@@ -10,6 +10,7 @@ import { FileUpload } from '@/components/shared/FileUpload';
 import { Loader } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { ExportDialog } from '@/components/shared/ExportDialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 export default function Dashboard() {
   const { 
@@ -36,9 +37,12 @@ export default function Dashboard() {
     };
   }, []);
 
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+
   const handleFileUpload = async (file: File) => {
     try {
       await uploadFile(file);
+      setIsUploadDialogOpen(false); // Close the dialog after successful upload
     } catch (error) {
       console.error('Upload error:', error);
     }
