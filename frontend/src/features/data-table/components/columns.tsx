@@ -1,21 +1,19 @@
 // src/components/columns.tsx
-import { ColumnDef } from "@tanstack/react-table"
-import { DroneData } from "@/api/types"
-import { Button } from "@/components/ui/button"
-import { ArrowUpDown } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { ColumnDef } from "@tanstack/react-table";
+import { DroneData } from "@/api/types";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
 
 // Common header button class
-const headerButtonClass = "w-full justify-center font-semibold"
-const columnClass = "w-[200px]" // Fixed width for all columns
+const headerButtonClass = "w-full justify-center font-semibold";
+const columnClass = "w-[200px]"; // Fixed width for all columns
 
 // Helper function to parse number comparison
 const parseNumberComparison = (value: string) => {
-  const ops = ['<=', '>=', '<', '>', '='];
-  let operator = '=';
+  const ops = ["<=", ">=", "<", ">", "="];
+  let operator = "=";
   let number = value;
 
-  // Find the operator if it exists
   for (const op of ops) {
     if (value.startsWith(op)) {
       operator = op;
@@ -36,89 +34,81 @@ const numericFilter = (value: number, filterValue: string): boolean => {
   if (!comparison) return true;
 
   switch (comparison.operator) {
-    case '<=': return value <= comparison.number;
-    case '>=': return value >= comparison.number;
-    case '<': return value < comparison.number;
-    case '>': return value > comparison.number;
-    case '=': return value === comparison.number;
-    default: return true;
+    case "<=":
+      return value <= comparison.number;
+    case ">=":
+      return value >= comparison.number;
+    case "<":
+      return value < comparison.number;
+    case ">":
+      return value > comparison.number;
+    case "=":
+      return value === comparison.number;
+    default:
+      return true;
   }
 };
 
 export const columns: ColumnDef<DroneData>[] = [
   {
     id: "waypoint",
-    header: ({ column }) => {
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className={`${headerButtonClass} flex items-center justify-center gap-1`} // Added gap-1
-          >
-            <span className="inline-block">Waypoint</span>
-            <ArrowUpDown className="h-4 w-4" />
-          </Button>
-        </div>
-      );
-    },
-    
-    cell: ({ row, table }) => {
-      const pageIndex = table.getState().pagination.pageIndex;
-      const pageSize = table.getState().pagination.pageSize;
-      const rowIndex = row.index;
-      const globalIndex = pageIndex * pageSize + rowIndex;
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <span className="inline-block w-[40px]">{`#${globalIndex + 1}`}</span>
-        </div>
-      );
-    },
-    sortingFn: (rowA, rowB) => {
-      return rowA.index - rowB.index;
-    },
+    accessorFn: (_row, rowIndex) => rowIndex + 1, // Compute global waypoint index
+    header: ({ column }) => (
+      <div className={`text-center ${columnClass}`}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={`${headerButtonClass} flex items-center justify-center gap-1`}
+        >
+          <span className="inline-block">Waypoint</span>
+          <ArrowUpDown className="h-4 w-4" />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className={`text-center ${columnClass}`}>
+        <span className="inline-block w-[40px]">{`#${row.index + 1}`}</span>
+      </div>
+    ),
+    sortingFn: (rowA, rowB) => rowA.index - rowB.index, // Sort by computed index
   },
   {
     accessorKey: "timestamp",
-    header: ({ column }) => {
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className={headerButtonClass}
-          >
-            Time
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )
-    },
-    cell: ({ row }) => {
-      return <div className={`text-center ${columnClass}`}>{row.getValue("timestamp")}</div>;
-    },
+    header: ({ column }) => (
+      <div className={`text-center ${columnClass}`}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={headerButtonClass}
+        >
+          Time
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className={`text-center ${columnClass}`}>{row.getValue("timestamp")}</div>
+    ),
   },
   {
     accessorKey: "gps.latitude",
-    header: ({ column }) => {
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className={headerButtonClass}
-          >
-            Latitude
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )
-    },
+    header: ({ column }) => (
+      <div className={`text-center ${columnClass}`}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={headerButtonClass}
+        >
+          Latitude
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const latitude = row.original.gps?.latitude;
       return (
         <div className={`text-center ${columnClass}`}>
-          {latitude !== undefined ? latitude.toFixed(6) : 'N/A'}
+          {latitude !== undefined ? latitude.toFixed(6) : "N/A"}
         </div>
       );
     },
@@ -130,25 +120,23 @@ export const columns: ColumnDef<DroneData>[] = [
   },
   {
     accessorKey: "gps.longitude",
-    header: ({ column }) => {
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className={headerButtonClass}
-          >
-            Longitude
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )
-    },
+    header: ({ column }) => (
+      <div className={`text-center ${columnClass}`}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={headerButtonClass}
+        >
+          Longitude
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const longitude = row.original.gps?.longitude;
       return (
         <div className={`text-center ${columnClass}`}>
-          {longitude !== undefined ? longitude.toFixed(6) : 'N/A'}
+          {longitude !== undefined ? longitude.toFixed(6) : "N/A"}
         </div>
       );
     },
@@ -160,25 +148,23 @@ export const columns: ColumnDef<DroneData>[] = [
   },
   {
     accessorKey: "gps.altitude",
-    header: ({ column }) => {
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className={headerButtonClass}
-          >
-            Altitude (m)
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )
-    },
+    header: ({ column }) => (
+      <div className={`text-center ${columnClass}`}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={headerButtonClass}
+        >
+          Altitude (m)
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const altitude = row.original.gps?.altitude;
       return (
         <div className={`text-center ${columnClass}`}>
-          {altitude !== undefined ? `${altitude.toFixed(1)} m` : 'N/A'}
+          {altitude !== undefined ? `${altitude.toFixed(1)} m` : "N/A"}
         </div>
       );
     },
@@ -190,25 +176,23 @@ export const columns: ColumnDef<DroneData>[] = [
   },
   {
     accessorKey: "radar.distance",
-    header: ({ column }) => {
-      return (
-        <div className={`text-center ${columnClass}`}>
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className={headerButtonClass}
-          >
-            Distance (m)
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      )
-    },
+    header: ({ column }) => (
+      <div className={`text-center ${columnClass}`}>
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className={headerButtonClass}
+        >
+          Distance (m)
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const distance = row.original.radar?.distance;
       return (
         <div className={`text-center ${columnClass}`}>
-          {distance !== undefined ? `${distance.toFixed(1)} m` : 'N/A'}
+          {distance !== undefined ? `${distance.toFixed(1)} m` : "N/A"}
         </div>
       );
     },
@@ -218,4 +202,4 @@ export const columns: ColumnDef<DroneData>[] = [
       return numericFilter(value, filterValue);
     },
   },
-]
+];
