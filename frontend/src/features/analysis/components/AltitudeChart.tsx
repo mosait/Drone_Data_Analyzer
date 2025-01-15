@@ -80,15 +80,15 @@ export const AltitudeChart = ({ timeSeries, summary, syncHover }: Props) => {
         <div className="grid grid-cols-4 gap-4 mt-2">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Maximum</p>
-            <p className="text-2xl font-bold">{summary.altitude.max}m</p>
+            <p className="text-2xl font-bold">{summary.altitude.max.toFixed(2)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Minimum</p>
-            <p className="text-2xl font-bold">{summary.altitude.min}m</p>
+            <p className="text-2xl font-bold">{summary.altitude.min.toFixed(2)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Average</p>
-            <p className="text-2xl font-bold">{summary.altitude.avg}m</p>
+            <p className="text-2xl font-bold">{summary.altitude.avg.toFixed(2)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Change</p>

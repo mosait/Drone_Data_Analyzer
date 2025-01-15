@@ -146,7 +146,7 @@ export default function DataTable() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Flight Duration</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              <p className="text-2xl font-bold">{metrics.flightMetrics.duration} min</p>
+              <p className="text-2xl font-bold">{metrics.flightMetrics.duration.toFixed(2)} min</p>
             </CardContent>
           </Card>
           <Card>
@@ -154,7 +154,7 @@ export default function DataTable() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Max Altitude</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              <p className="text-2xl font-bold">{metrics.flightMetrics.maxAltitude} m</p>
+              <p className="text-2xl font-bold">{metrics.flightMetrics.maxAltitude.toFixed(2)} m</p>
             </CardContent>
           </Card>
           <Card>
@@ -162,7 +162,7 @@ export default function DataTable() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Avg Distance</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              <p className="text-2xl font-bold">{metrics.flightMetrics.avgDistance} m</p>
+              <p className="text-2xl font-bold">{metrics.flightMetrics.avgDistance.toFixed(2)} m</p>
             </CardContent>
           </Card>
           <Card>
@@ -170,7 +170,7 @@ export default function DataTable() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Data Points</CardTitle>
             </CardHeader>
             <CardContent className="p-4 pt-0">
-              <p className="text-2xl font-bold">{metrics.flightMetrics.totalPoints}</p>
+              <p className="text-2xl font-bold">{metrics.flightMetrics.totalPoints.toFixed(2)}</p>
             </CardContent>
           </Card>
         </div>

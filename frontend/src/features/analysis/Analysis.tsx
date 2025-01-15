@@ -101,7 +101,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Duration</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.duration} min</p>
+            <p className="text-2xl font-bold">{flightMetrics.duration.toFixed(2)} min</p>
           </CardContent>
         </Card>
         <Card>
@@ -109,7 +109,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Max Altitude</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.maxAltitude}m</p>
+            <p className="text-2xl font-bold">{flightMetrics.maxAltitude.toFixed(2)}m</p>
           </CardContent>
         </Card>
         <Card>
@@ -117,7 +117,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Distance</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.maxDistance}m</p>
+            <p className="text-2xl font-bold">{flightMetrics.maxDistance.toFixed(2)}m</p>
           </CardContent>
         </Card>
         <Card>
@@ -125,7 +125,7 @@ const Analysis = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">Data Points</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.totalPoints}</p>
+            <p className="text-2xl font-bold">{flightMetrics.totalPoints.toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>

@@ -81,15 +81,15 @@ export const RadarChart = ({ timeSeries, summary, syncHover }: Props) => {
         <div className="grid grid-cols-4 gap-4 mt-2">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Maximum</p>
-            <p className="text-2xl font-bold">{summary.radar.max}m</p>
+            <p className="text-2xl font-bold">{summary.radar.max.toFixed(2)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Minimum</p>
-            <p className="text-2xl font-bold">{summary.radar.min}m</p>
+            <p className="text-2xl font-bold">{summary.radar.min.toFixed(2)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Average</p>
-            <p className="text-2xl font-bold">{summary.radar.avg}m</p>
+            <p className="text-2xl font-bold">{summary.radar.avg.toFixed(2)}m</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">Change</p>

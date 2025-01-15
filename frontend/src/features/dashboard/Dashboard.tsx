@@ -151,25 +151,25 @@ export default function Dashboard() {
                   <div>
                     <p className="text-sm text-muted-foreground">Max Altitude</p>
                     <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.maxAltitude}m
+                      {metrics.flightMetrics.maxAltitude.toFixed(2)}m
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Flight Duration</p>
                     <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.duration}min
+                      {metrics.flightMetrics.duration.toFixed(2)}min
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Avg Distance</p>
                     <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.avgDistance}m
+                      {metrics.flightMetrics.avgDistance.toFixed(2)}m
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Data Points</p>
                     <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.totalPoints}
+                      {metrics.flightMetrics.totalPoints.toFixed(2)}
                     </p>
                   </div>
                 </div>
