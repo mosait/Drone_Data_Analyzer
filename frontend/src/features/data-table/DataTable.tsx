@@ -1,5 +1,6 @@
 // src/features/data-table/DataTable.tsx
 import { useState } from 'react';
+import { X } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import { useDataStore } from '@/store/useDataStore';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { ColumnFilter } from './components/ColumnFilter';
+import { api } from "@/api/endpoints";
 
 export default function DataTable() {
   const { currentData, metrics, isLoading, error } = useDataStore();
@@ -42,6 +44,21 @@ export default function DataTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const { selectedFile } = useDataStore();
+
+  const handleResetFilters = () => {
+    setColumnFilters([]);
+    setGlobalFilter("");
+  };
+
+  // Handle showing/hiding filters
+  const handleToggleFilters = () => {
+    if (showFilters) {
+      // Reset filters when hiding them
+      handleResetFilters();
+    }
+    setShowFilters(!showFilters);
+  };
 
   const table = useReactTable({
     data: currentData || [],
@@ -65,35 +82,23 @@ export default function DataTable() {
     },
   });
 
-  const handleExport = () => {
-    if (!currentData?.length) return;
+  const handleExport = async (format: 'csv' | 'json') => {
+    if (!selectedFile) return;
     
-    // Create CSV content
-    const headers = ['timestamp', 'waypoint', 'latitude', 'longitude', 'altitude', 'radar_distance'];
-    const rows = currentData.map((row, index) => [
-      row.timestamp,
-      `#${index + 1}`,
-      row.gps.latitude.toFixed(6),
-      row.gps.longitude.toFixed(6),
-      row.gps.altitude,
-      row.radar.distance
-    ]);
-    
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    // Download file
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'drone_data.csv';
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    try {
+      const blob = await api.analysis.export(selectedFile.id, format);
+      // Create download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `drone_data.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error(`Error exporting ${format}:`, error);
+    }
   };
 
   if (isLoading) {
@@ -170,7 +175,6 @@ export default function DataTable() {
           </Card>
         </div>
       )}
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <CardTitle>Flight Data</CardTitle>
@@ -178,20 +182,32 @@ export default function DataTable() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={handleToggleFilters}
               className={showFilters ? 'bg-accent' : ''}
             >
               <Filter className="mr-2 h-4 w-4" />
               Filters
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
+            {selectedFile && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport('csv')}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export CSV
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExport('json')}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export JSON
+                </Button>
+              </>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -203,6 +219,15 @@ export default function DataTable() {
               onChange={(event) => setGlobalFilter(event.target.value)}
               className="max-w-sm"
             />
+            {globalFilter && (
+              <Button
+                variant="ghost"
+                onClick={() => setGlobalFilter("")}
+                className="ml-2 h-8 px-2"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
           <div className="rounded-md border">
             <Table>
