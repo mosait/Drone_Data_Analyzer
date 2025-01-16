@@ -8,15 +8,21 @@ import type {
   FlightMetrics
 } from '../api/types';
 
+interface FileSlots {
+  slot1: FileUploadResponse | null;
+  slot2: FileUploadResponse | null;
+}
+
 interface DataState {
-  selectedFile: FileUploadResponse | null;
-  currentFile: FileUploadResponse | null;
-  currentData: DroneData[] | null;
-  metrics: {
+  fileSlots: FileSlots;
+  selectedFiles: FileUploadResponse[]; // Keep this for backwards compatibility
+  currentFiles: FileUploadResponse[]; // Keep this for backwards compatibility
+  currentDataMap: Record<string, DroneData[]>;
+  metricsMap: Record<string, {
     flightMetrics: FlightMetrics | null;
     timeSeries: any[] | null;
     summary: any | null;
-  } | null;
+  }>;
   recentFiles: FileUploadResponse[];
   error: string | null;
   isLoading: boolean;
@@ -24,20 +30,24 @@ interface DataState {
 }
 
 interface DataActions {
-  setCurrentFile: (file: FileUploadResponse) => Promise<void>;
   loadRecentFiles: () => Promise<void>;
-  uploadFile: (file: File) => Promise<void>;
-  selectFile: (file: FileUploadResponse) => Promise<void>;
+  uploadFile: (file: File) => Promise<FileUploadResponse>;
+  addFileToSlot: (file: FileUploadResponse, slot: 1 | 2) => Promise<void>;
+  removeFileFromSlot: (slot: 1 | 2) => void;
   clearError: () => void;
   setUploadProgress: (progress: number) => void;
   reset: () => void;
 }
 
 const initialState: DataState = {
-  selectedFile: null,
-  currentFile: null,
-  currentData: null,
-  metrics: null,
+  fileSlots: {
+    slot1: null,
+    slot2: null
+  },
+  selectedFiles: [], // Initialize empty array
+  currentFiles: [], // Initialize empty array
+  currentDataMap: {},
+  metricsMap: {},
   recentFiles: [],
   error: null,
   isLoading: false,
@@ -52,30 +62,6 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
   setUploadProgress: (progress) => set({ uploadProgress: progress }),
 
   reset: () => set(initialState),
-
-  setCurrentFile: async (file) => {
-    try {
-      set({ isLoading: true, error: null });
-      
-      const processedData = await api.data.get(file.id);
-      
-      set({ 
-        currentFile: file, 
-        currentData: processedData.data,
-        metrics: processedData.metrics,
-        error: null
-      });
-    } catch (error) {
-      console.error('Error setting current file:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to load file data',
-        currentData: null,
-        metrics: null
-      });
-    } finally {
-      set({ isLoading: false });
-    }
-  },
 
   loadRecentFiles: async () => {
     try {
@@ -95,48 +81,96 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       set({ uploadProgress: 50 });
       
       await get().loadRecentFiles();
-      set({ uploadProgress: 75 });
+      set({ uploadProgress: 100 });
       
-      await get().setCurrentFile(response);
-      
-      set({ 
-        selectedFile: response,
-        uploadProgress: 100
-      });
+      return response;
     } catch (error) {
       console.error('Error uploading file:', error);
-      set({ 
-        error: error instanceof Error ? error.message : 'Failed to upload file',
-        currentData: null,
-        metrics: null
-      });
+      throw error;
     } finally {
       set({ isLoading: false });
       setTimeout(() => get().setUploadProgress(0), 1000);
     }
   },
 
-  selectFile: async (file: FileUploadResponse) => {
+  addFileToSlot: async (file: FileUploadResponse, slot: 1 | 2) => {
     try {
-      set({ isLoading: true, selectedFile: file });
+      set({ isLoading: true, error: null });
       
       const processedData = await api.data.get(file.id);
       
-      set({ 
-        currentFile: file,
-        currentData: processedData.data,
-        metrics: processedData.metrics,
-        error: null
+      set(state => {
+        // Update slots
+        const newFileSlots = {
+          ...state.fileSlots,
+          [`slot${slot}`]: file
+        };
+
+        // Compute selected and current files from slots
+        const selectedFiles = Object.values(newFileSlots).filter((f): f is FileUploadResponse => f !== null);
+
+        return {
+          fileSlots: newFileSlots,
+          selectedFiles,
+          currentFiles: selectedFiles,
+          currentDataMap: {
+            ...state.currentDataMap,
+            [file.id]: processedData.data
+          },
+          metricsMap: {
+            ...state.metricsMap,
+            [file.id]: processedData.metrics
+          },
+          error: null
+        };
       });
     } catch (error) {
-      console.error('Error selecting file:', error);
+      console.error('Error adding file to slot:', error);
       set({ 
-        error: error instanceof Error ? error.message : 'Failed to load file data',
-        currentData: null,
-        metrics: null
+        error: error instanceof Error ? error.message : 'Failed to add file to slot'
       });
+      throw error;
     } finally {
       set({ isLoading: false });
     }
+  },
+
+  removeFileFromSlot: (slot: 1 | 2) => {
+    set(state => {
+      const fileInSlot = state.fileSlots[`slot${slot}`];
+      if (!fileInSlot) return state;
+
+      // Create new file slots
+      const newFileSlots = {
+        ...state.fileSlots,
+        [`slot${slot}`]: null
+      };
+
+      // Get remaining selected files
+      const selectedFiles = Object.values(newFileSlots).filter((f): f is FileUploadResponse => f !== null);
+
+      // Remove data for the file being removed if it's not in the other slot
+      const isFileInOtherSlot = selectedFiles.some(f => f.id === fileInSlot.id);
+      
+      const newDataMap = isFileInOtherSlot 
+        ? state.currentDataMap 
+        : Object.fromEntries(
+            Object.entries(state.currentDataMap).filter(([id]) => id !== fileInSlot.id)
+          );
+
+      const newMetricsMap = isFileInOtherSlot
+        ? state.metricsMap
+        : Object.fromEntries(
+            Object.entries(state.metricsMap).filter(([id]) => id !== fileInSlot.id)
+          );
+
+      return {
+        fileSlots: newFileSlots,
+        selectedFiles,
+        currentFiles: selectedFiles,
+        currentDataMap: newDataMap,
+        metricsMap: newMetricsMap
+      };
+    });
   },
 }));

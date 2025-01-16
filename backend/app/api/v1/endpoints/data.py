@@ -1,10 +1,11 @@
 # backend/app/api/v1/endpoints/data.py
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from pathlib import Path
 from typing import Optional, List
 import json
 import csv
+import io
 from datetime import datetime, time
 import logging
 from ....core.config import settings
@@ -128,6 +129,12 @@ def calculate_metrics(data: List[dict]):
     # Calculate time series with proper duration
     time_series = []
     start_time = parse_time(data[0]["timestamp"])
+    max_altitude = max(altitude_values)
+    min_altitude = min(altitude_values)
+    avg_altitude = sum(altitude_values) / len(altitude_values)
+    max_distance = max(distance_values)
+    min_distance = min(distance_values)
+    avg_distance = sum(distance_values) / len(distance_values)
 
     for item in data:
         current_time = parse_time(item["timestamp"])
@@ -137,22 +144,29 @@ def calculate_metrics(data: List[dict]):
             "duration": round(duration, 2),
             "altitude": item["gps"]["altitude"],
             "distance": item["radar"]["distance"],
+            "normalizedAltitude": (
+                (item["gps"]["altitude"] - min_altitude) / (max_altitude - min_altitude)
+                if max_altitude != min_altitude
+                else 0
+            ),
+            "normalizedDistance": (
+                (item["radar"]["distance"] - min_distance)
+                / (max_distance - min_distance)
+                if max_distance != min_distance
+                else 0
+            ),
             "time": item["timestamp"],
         }
         time_series.append(point)
 
-    # Calculate averages
-    avg_altitude = sum(altitude_values) / len(altitude_values)
-    avg_distance = sum(distance_values) / len(distance_values)
-
     return {
         "flightMetrics": {
             "duration": round(total_duration, 2),
-            "maxAltitude": max(altitude_values),
-            "minAltitude": min(altitude_values),
+            "maxAltitude": max_altitude,
+            "minAltitude": min_altitude,
             "avgAltitude": round(avg_altitude, 2),
-            "maxDistance": max(distance_values),
-            "minDistance": min(distance_values),
+            "maxDistance": max_distance,
+            "minDistance": min_distance,
             "avgDistance": round(avg_distance, 2),
             "totalPoints": len(data),
             "startTime": data[0]["timestamp"],
@@ -161,14 +175,14 @@ def calculate_metrics(data: List[dict]):
         "timeSeries": time_series,
         "summary": {
             "altitude": {
-                "max": max(altitude_values),
-                "min": min(altitude_values),
+                "max": max_altitude,
+                "min": min_altitude,
                 "avg": round(avg_altitude, 2),
                 "change": round(altitude_values[-1] - altitude_values[0], 2),
             },
             "radar": {
-                "max": max(distance_values),
-                "min": min(distance_values),
+                "max": max_distance,
+                "min": min_distance,
                 "avg": round(avg_distance, 2),
                 "change": round(distance_values[-1] - distance_values[0], 2),
             },
@@ -209,3 +223,98 @@ async def get_data(
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# backend/app/api/v1/endpoints/data.py
+from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi.responses import JSONResponse, PlainTextResponse
+from pathlib import Path
+from typing import Optional, List
+import json
+import csv
+from io import StringIO
+from datetime import datetime, time
+import logging
+from ....core.config import settings
+
+
+@router.get("/{file_id}/export")
+async def export_data(
+    response: Response, file_id: str, format: str = Query(..., regex="^(csv|json)$")
+):
+    """Export drone data in specified format."""
+    logger.info(f"Exporting file {file_id} in {format} format")
+
+    try:
+        # Get file path and read data
+        file_path = get_file_path(file_id)
+        data = read_file_content(file_path)
+
+        if not data:
+            raise HTTPException(status_code=404, detail="No data found in file")
+
+        if format == "csv":
+            # Use StringIO with proper newline handling
+            output = StringIO(newline="")
+            writer = csv.writer(output, lineterminator="\n")
+
+            # Write header
+            writer.writerow(
+                ["timestamp", "latitude", "longitude", "altitude", "radar_distance"]
+            )
+
+            # Write data rows with proper formatting
+            for item in data:
+                writer.writerow(
+                    [
+                        item["timestamp"],
+                        f"{item['gps']['latitude']:.4f}",
+                        f"{item['gps']['longitude']:.4f}",
+                        str(int(round(item["gps"]["altitude"]))),
+                        str(int(round(item["radar"]["distance"]))),
+                    ]
+                )
+
+            # Get content and close StringIO
+            content = output.getvalue()
+            output.close()
+
+            # Return plain text response with proper headers
+            response = PlainTextResponse(content=content, media_type="text/csv")
+            response.headers["Content-Disposition"] = (
+                "attachment; filename=drone_data.csv"
+            )
+            return response
+
+        else:  # JSON format
+            # Format data properly
+            formatted_data = []
+            for item in data:
+                formatted_item = {
+                    "timestamp": item["timestamp"],
+                    "gps": {
+                        "latitude": round(float(item["gps"]["latitude"]), 4),
+                        "longitude": round(float(item["gps"]["longitude"]), 4),
+                        "altitude": int(round(item["gps"]["altitude"])),
+                    },
+                    "radar": {"distance": int(round(item["radar"]["distance"]))},
+                }
+                formatted_data.append(formatted_item)
+
+            # Create formatted JSON string with proper indentation
+            json_str = json.dumps(formatted_data, indent=2)
+
+            # Return as PlainTextResponse to preserve formatting
+            response = PlainTextResponse(
+                content=json_str, media_type="application/json"
+            )
+            response.headers["Content-Disposition"] = (
+                "attachment; filename=drone_data.json"
+            )
+            return response
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Export error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")

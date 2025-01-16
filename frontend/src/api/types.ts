@@ -61,3 +61,8 @@ export interface FileUploadResponse {
   timestamp: string;
   status: 'success' | 'error' | 'processing';
 }
+
+export interface FileSlots {
+  slot1: FileUploadResponse | null;
+  slot2: FileUploadResponse | null;
+}

@@ -18,26 +18,27 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { FileUploadResponse } from "@/api/types";
-import { api } from "@/api/endpoints";
+import { useDataStore } from "@/store/useDataStore";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { api } from "@/api/endpoints";
 
 interface ExportDialogProps {
-  selectedFile: FileUploadResponse | null;
   disabled?: boolean;
 }
 
-export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
+export function ExportDialog({ disabled }: ExportDialogProps) {
   const [format, setFormat] = useState<"csv" | "json">("csv");
-  const [filename, setFilename] = useState(() => {
-    return selectedFile ? `${selectedFile.filename.split(".")[0]}_export` : "export";
-  });
+  const [filename, setFilename] = useState("export");
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedFileSlot, setSelectedFileSlot] = useState<string>("");
+
+  const { fileSlots } = useDataStore();
 
   const handleExport = async () => {
+    const selectedFile = selectedFileSlot === "slot1" ? fileSlots.slot1 : fileSlots.slot2;
     if (!selectedFile) return;
 
     try {
@@ -46,7 +47,7 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
 
       const blob = await api.analysis.export(selectedFile.id, format);
       
-      // Create a download link
+      // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -56,7 +57,6 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
       
-      // Close the dialog after successful export
       setIsOpen(false);
     } catch (error) {
       console.error("Export error:", error);
@@ -65,6 +65,35 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
       setIsExporting(false);
     }
   };
+
+  // Generate file options based on loaded files
+  const getFileOptions = () => {
+    const options = [];
+    if (fileSlots.slot1) {
+      options.push({
+        value: "slot1",
+        label: `File 1: ${fileSlots.slot1.filename}`
+      });
+    }
+    if (fileSlots.slot2) {
+      options.push({
+        value: "slot2",
+        label: `File 2: ${fileSlots.slot2.filename}`
+      });
+    }
+    return options;
+  };
+
+  // Update filename when file selection changes
+  const handleFileSelect = (value: string) => {
+    setSelectedFileSlot(value);
+    const selectedFile = value === "slot1" ? fileSlots.slot1 : fileSlots.slot2;
+    if (selectedFile) {
+      setFilename(selectedFile.filename.split(".")[0] + "_export");
+    }
+  };
+
+  const fileOptions = getFileOptions();
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -89,6 +118,26 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          
+          <div className="space-y-2">
+            <Label>Select File</Label>
+            <Select
+              value={selectedFileSlot}
+              onValueChange={handleFileSelect}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a file to export" />
+              </SelectTrigger>
+              <SelectContent>
+                {fileOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="filename">File Name</Label>
             <Input
@@ -98,6 +147,7 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
               placeholder="Enter file name"
             />
           </div>
+
           <div className="space-y-2">
             <Label>Format</Label>
             <Select value={format} onValueChange={(value: "csv" | "json") => setFormat(value)}>
@@ -110,10 +160,11 @@ export function ExportDialog({ selectedFile, disabled }: ExportDialogProps) {
               </SelectContent>
             </Select>
           </div>
+
           <Button 
             className="w-full" 
             onClick={handleExport} 
-            disabled={isExporting || !filename}
+            disabled={isExporting || !selectedFileSlot || !filename}
           >
             {isExporting ? (
               <span className="flex items-center gap-2">
