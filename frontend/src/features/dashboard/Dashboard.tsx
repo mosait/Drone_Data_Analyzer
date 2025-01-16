@@ -2,16 +2,16 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileType, Download, Clock } from 'lucide-react';
+import { Upload, FileType, Clock, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader, AlertCircle } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
-import { ExportDialog } from '@/components/shared/ExportDialog';
 import { FlightComparison } from './components/FlightComparison';
 import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
 import { FileUploadResponse } from '@/api/types';
+import { QuickActions } from './components/QuickActions';
 
 export default function Dashboard() {
   const { 
@@ -23,14 +23,14 @@ export default function Dashboard() {
     error,
     clearError,
     uploadProgress,
-    addFileToSlot
+    addFileToSlot,
+    removeFileFromSlot
   } = useDataStore();
 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
   const [dragActive, setDragActive] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -197,25 +197,7 @@ export default function Dashboard() {
 
         {/* Right Column */}
         <div>
-          {/* Quick Actions */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex flex-col justify-center space-y-4">
-                <Button
-                  className="w-full flex items-center gap-2 justify-center h-11"
-                  variant="outline"
-                  onClick={triggerFileInput}
-                >
-                  <Upload className="h-5 w-5" />
-                  Upload New File
-                </Button>
-                <ExportDialog disabled={!fileSlots.slot1 && !fileSlots.slot2} />
-              </div>
-            </CardContent>
-          </Card>
+        <QuickActions onUploadClick={triggerFileInput} />
 
           {/* Recent Files */}
           <Card>

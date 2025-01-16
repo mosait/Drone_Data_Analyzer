@@ -8,7 +8,7 @@ interface FileSlotDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSlotSelect: (slot: 1 | 2) => void;
-  file: FileUploadResponse | null; // Make file optional
+  file: FileUploadResponse | null;
 }
 
 export const FileSlotDialog = ({ 
@@ -19,11 +19,18 @@ export const FileSlotDialog = ({
 }: FileSlotDialogProps) => {
   const { fileSlots } = useDataStore();
 
-  // Check which slots are available
-  const slot1Used = !!fileSlots.slot1;
-  const slot2Used = !!fileSlots.slot2;
+  const handleSlotSelect = (slot: 1 | 2) => {
+    // If slot is occupied, show confirmation
+    if (fileSlots[`slot${slot}`]) {
+      if (confirm(`Replace "${fileSlots[`slot${slot}`]?.filename}" with "${file?.filename}"?`)) {
+        onSlotSelect(slot);
+      }
+    } else {
+      onSlotSelect(slot);
+    }
+  };
 
-  if (!file) return null; // Don't render if no file is selected
+  if (!file) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -39,39 +46,32 @@ export const FileSlotDialog = ({
             <Button 
               variant="outline" 
               className="h-24 flex flex-col gap-2"
-              onClick={() => onSlotSelect(1)}
-              disabled={slot1Used}
+              onClick={() => handleSlotSelect(1)}
             >
               <span className="text-2xl">1</span>
               <span className="text-sm">
-                {slot1Used ? (
+                {fileSlots.slot1 ? (
                   <span className="text-xs text-muted-foreground">
-                    {fileSlots.slot1?.filename || 'Occupied'}
+                    Replace: {fileSlots.slot1.filename}
                   </span>
-                ) : 'File Slot 1'}
+                ) : 'Empty Slot'}
               </span>
             </Button>
             <Button 
-              variant="outline"
+              variant="outline" 
               className="h-24 flex flex-col gap-2"
-              onClick={() => onSlotSelect(2)}
-              disabled={slot2Used}
+              onClick={() => handleSlotSelect(2)}
             >
               <span className="text-2xl">2</span>
               <span className="text-sm">
-                {slot2Used ? (
+                {fileSlots.slot2 ? (
                   <span className="text-xs text-muted-foreground">
-                    {fileSlots.slot2?.filename || 'Occupied'}
+                    Replace: {fileSlots.slot2.filename}
                   </span>
-                ) : 'File Slot 2'}
+                ) : 'Empty Slot'}
               </span>
             </Button>
           </div>
-          {(slot1Used && slot2Used) && (
-            <p className="text-sm text-destructive">
-              Remove a file from an existing slot to add a new file.
-            </p>
-          )}
         </div>
       </DialogContent>
     </Dialog>

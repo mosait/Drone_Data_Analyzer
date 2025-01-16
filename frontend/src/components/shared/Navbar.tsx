@@ -2,15 +2,15 @@
 import { ThemeToggle } from '../theme/theme-toggle';
 import { useLocation } from 'react-router-dom';
 import { useDataStore } from '@/store/useDataStore';
-import { FileText } from 'lucide-react';
+import { FileText, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
 const Navbar = () => {
   const location = useLocation();
-  const { fileSlots } = useDataStore();
+  const { fileSlots, removeFileFromSlot } = useDataStore();
   
-  // Get current page title based on route
   const getPageTitle = () => {
     switch(location.pathname) {
       case '/':
@@ -24,7 +24,6 @@ const Navbar = () => {
     }
   };
 
-  // Render loaded files information
   const renderLoadedFiles = () => {
     const hasFiles = fileSlots.slot1 || fileSlots.slot2;
 
@@ -40,18 +39,34 @@ const Navbar = () => {
     return (
       <div className="flex items-center gap-3">
         {fileSlots.slot1 && (
-          <Badge variant="secondary" className="flex items-center">
-            <FileText className="h-3 w-3 mr-1" />
+          <Badge variant="secondary" className="flex items-center gap-2">
+            <FileText className="h-3 w-3" />
             File 1: {fileSlots.slot1.filename}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-4 w-4 p-0 hover:bg-destructive/10"
+              onClick={() => removeFileFromSlot(1)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </Badge>
         )}
         {fileSlots.slot1 && fileSlots.slot2 && (
           <Separator orientation="vertical" className="h-4" />
         )}
         {fileSlots.slot2 && (
-          <Badge variant="secondary" className="flex items-center">
-            <FileText className="h-3 w-3 mr-1" />
+          <Badge variant="secondary" className="flex items-center gap-2">
+            <FileText className="h-3 w-3" />
             File 2: {fileSlots.slot2.filename}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-4 w-4 p-0 hover:bg-destructive/10"
+              onClick={() => removeFileFromSlot(2)}
+            >
+              <X className="h-3 w-3" />
+            </Button>
           </Badge>
         )}
       </div>
