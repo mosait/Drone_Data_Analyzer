@@ -12,6 +12,7 @@ interface QuickActionsProps {
 
 export const QuickActions = ({ onUploadClick }: QuickActionsProps) => {
   const { fileSlots, removeFileFromSlot } = useDataStore();
+  const hasFiles = fileSlots.slot1 || fileSlots.slot2;
 
   return (
     <Card className="mb-6">
@@ -19,23 +20,24 @@ export const QuickActions = ({ onUploadClick }: QuickActionsProps) => {
         <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
-        <div className="flex flex-col justify-center space-y-4">
-          <Button
-            className="w-full flex items-center gap-2 justify-center h-11"
-            variant="outline"
-            onClick={onUploadClick}
-          >
-            <Upload className="h-5 w-5" />
-            Upload New File
-          </Button>
-          <ExportDialog disabled={!fileSlots.slot1 && !fileSlots.slot2} />
-          
-          {/* File Management section */}
-          {(fileSlots.slot1 || fileSlots.slot2) && (
-            <>
-              <Separator className="my-2" />
+        <div className="min-h-[255px]">
+          <div className="space-y-4">
+            <Button
+              className="w-full flex items-center gap-2 justify-center h-11"
+              variant="outline"
+              onClick={onUploadClick}
+            >
+              <Upload className="h-5 w-5" />
+              Upload New File
+            </Button>
+            <ExportDialog disabled={!hasFiles} />
+          </div>
+
+          <div className="mt-8">
+            <Separator className="mb-4" />
+            <p className="text-sm font-medium mb-2">Manage Files</p>
+            {hasFiles ? (
               <div className="space-y-2">
-                <p className="text-sm font-medium">Manage Files</p>
                 {fileSlots.slot1 && (
                   <Button
                     variant="ghost"
@@ -59,8 +61,10 @@ export const QuickActions = ({ onUploadClick }: QuickActionsProps) => {
                   </Button>
                 )}
               </div>
-            </>
-          )}
+            ) : (
+              <p className="text-sm text-muted-foreground">No files selected</p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -109,7 +109,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
+    <div className="container mx-auto px-6 py-2">
       <input
         ref={fileInputRef}
         type="file"
@@ -142,7 +142,7 @@ export default function Dashboard() {
             <CardContent>
               <div
                 className={`
-                  relative border-2 border-dashed rounded-lg p-8 h-[200px]
+                  relative border-2 border-dashed rounded-lg p-8 h-[255px]
                   ${dragActive ? 'border-primary bg-primary/10' : ''}
                   hover:border-primary hover:bg-primary/5
                   transition-colors duration-200
@@ -209,7 +209,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               {recentFiles && recentFiles.length > 0 ? (
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
                   {recentFiles.map((file) => (
                     <Button
                       key={file.id}

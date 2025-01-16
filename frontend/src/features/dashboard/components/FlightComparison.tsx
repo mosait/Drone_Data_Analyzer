@@ -3,7 +3,6 @@ import { useDataStore } from "@/store/useDataStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import type { FlightMetrics } from "@/api/types";
 
 interface MetricItemProps {
   label: string;
@@ -21,75 +20,11 @@ const MetricItem = ({ label, value, unit, className = "" }: MetricItemProps) => 
   </div>
 );
 
-interface ComparisonMetricProps {
-  label: string;
-  value1: number;
-  value2: number;
-  unit?: string;
-  higherIsBetter?: boolean;
-}
-
-
 interface FlightMetricsProps {
   data: any;
   label: string;
   className?: string;
 }
-
-
-const ComparisonMetric = ({ 
-  label, 
-  value1, 
-  value2, 
-  unit = '', 
-  higherIsBetter = true 
-}: ComparisonMetricProps) => {
-  const difference = value2 - value1;
-  const percentChange = ((value2 - value1) / value1) * 100;
-  
-  const getDifferenceColor = () => {
-    if (difference === 0) return "text-muted-foreground";
-    if (higherIsBetter) {
-      return difference > 0 ? "text-emerald-600" : "text-red-600";
-    }
-    return difference < 0 ? "text-emerald-600" : "text-red-600";
-  };
-
-  return (
-    <div className="space-y-1">
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">File 1</p>
-          <p className="text-lg font-semibold">
-            {value1.toFixed(1)}{unit}
-          </p>
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">File 2</p>
-          <p className="text-lg font-semibold">
-            {value2.toFixed(1)}{unit}
-          </p>
-        </div>
-      </div>
-      <div className={`text-sm font-medium ${getDifferenceColor()}`}>
-        {difference !== 0 && (
-          <>
-            {difference > 0 ? '↑' : '↓'} {Math.abs(difference).toFixed(1)}{unit} 
-            <span className="ml-1 text-muted-foreground">
-              ({Math.abs(percentChange).toFixed(1)}%)
-            </span>
-          </>
-        )}
-        {difference === 0 && (
-          <span>No change</span>
-        )}
-      </div>
-    </div>
-  );
-};
-
-
 
 const FlightMetrics = ({ data, label, className = "" }: FlightMetricsProps) => {
   if (!data?.flightMetrics) return null;
@@ -128,6 +63,70 @@ const FlightMetrics = ({ data, label, className = "" }: FlightMetricsProps) => {
   );
 };
 
+interface ComparisonMetricProps {
+  label: string;
+  value1: number;
+  value2: number;
+  unit?: string;
+}
+
+const ComparisonMetric = ({ 
+  label, 
+  value1, 
+  value2, 
+  unit = ''
+}: ComparisonMetricProps) => {
+  const difference = value2 - value1;
+  const percentChange = ((value2 - value1) / value1) * 100;
+  
+  const formatDifference = (isFirstFile: boolean) => {
+    const diff = isFirstFile ? -difference : difference;
+    const percent = isFirstFile ? -percentChange : percentChange;
+    const arrow = diff > 0 ? '↑' : '↓';
+    const signedDiff = diff > 0 ? `+${Math.abs(diff).toFixed(1)}` : `-${Math.abs(diff).toFixed(1)}`;
+    const signedPercent = percent > 0 ? `+${Math.abs(percent).toFixed(1)}` : `-${Math.abs(percent).toFixed(1)}`;
+    
+    // Add color based on whether the number is positive or negative
+    const color = diff > 0 ? "text-emerald-600" : "text-red-600";
+    
+    return {
+      arrow,
+      text: `${signedDiff}${unit} (${signedPercent}%)`,
+      color
+    };
+  };
+
+  return (
+    <div className="space-y-1">
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">File 1</p>
+          <p className="text-lg font-semibold">
+            {value1.toFixed(1)}{unit}
+          </p>
+          {difference !== 0 && (
+            <p className={`text-sm font-medium ${formatDifference(true).color}`}>
+              {formatDifference(true).arrow} {formatDifference(true).text}
+            </p>
+          )}
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">File 2</p>
+          <p className="text-lg font-semibold">
+            {value2.toFixed(1)}{unit}
+          </p>
+          {difference !== 0 && (
+            <p className={`text-sm font-medium ${formatDifference(false).color}`}>
+              {formatDifference(false).arrow} {formatDifference(false).text}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const FlightComparison = () => {
   const { fileSlots, metricsMap } = useDataStore();
   const hasFiles = fileSlots.slot1 || fileSlots.slot2;
@@ -150,7 +149,6 @@ export const FlightComparison = () => {
     const metrics1 = metricsMap[fileSlots.slot1.id]?.flightMetrics;
     const metrics2 = metricsMap[fileSlots.slot2.id]?.flightMetrics;
 
-    // Early return if we don't have both metrics
     if (!metrics1 || !metrics2) {
       return (
         <Card>
@@ -172,49 +170,37 @@ export const FlightComparison = () => {
           <CardTitle>Comparison Analysis</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             <ComparisonMetric
               label="Flight Duration"
               value1={metrics1.duration}
               value2={metrics2.duration}
               unit="min"
-              higherIsBetter={false}
             />
-            
-            {/* Maximum Altitude */}
             <ComparisonMetric
-              label="Maximum Altitude"
-              value1={metrics1.maxAltitude}
-              value2={metrics2.maxAltitude}
-              unit="m"
+              label="Data Points"
+              value1={metrics1.totalPoints}
+              value2={metrics2.totalPoints}
+              unit=""
             />
-
-            {/* Average Altitude */}
             <ComparisonMetric
               label="Average Altitude"
               value1={metrics1.avgAltitude}
               value2={metrics2.avgAltitude}
               unit="m"
             />
-
-            {/* Average Distance */}
+            <ComparisonMetric
+              label="Maximum Altitude"
+              value1={metrics1.maxAltitude}
+              value2={metrics2.maxAltitude}
+              unit="m"
+            />
             <ComparisonMetric
               label="Average Distance"
               value1={metrics1.avgDistance}
               value2={metrics2.avgDistance}
               unit="m"
             />
-
-            {/* Data Points */}
-            <ComparisonMetric
-              label="Data Points"
-              value1={metrics1.totalPoints}
-              value2={metrics2.totalPoints}
-              unit=""
-              higherIsBetter={false}
-            />
-
-            {/* Maximum Distance */}
             <ComparisonMetric
               label="Maximum Distance"
               value1={metrics1.maxDistance}

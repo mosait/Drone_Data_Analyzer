@@ -38,5 +38,21 @@
     "id": "6f4cd616-36f1-4a0a-a4ba-0a21a84c040f",
     "status": "pending",
     "size": 392
+  },
+  "81c27d9b-53ff-42e5-a63c-9628deec8014": {
+    "filename": "sample.json",
+    "timestamp": "2025-01-17T00:46:00.433745",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250117_004600_sample.json",
+    "id": "81c27d9b-53ff-42e5-a63c-9628deec8014",
+    "status": "pending",
+    "size": 1870
+  },
+  "a0c647ab-8554-44ed-998a-66c711eb7e71": {
+    "filename": "sample_50.json",
+    "timestamp": "2025-01-17T00:46:20.765223",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250117_004620_sample_50.json",
+    "id": "a0c647ab-8554-44ed-998a-66c711eb7e71",
+    "status": "pending",
+    "size": 10228
   }
 }
