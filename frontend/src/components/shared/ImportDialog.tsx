@@ -1,15 +1,7 @@
 // src/components/shared/ImportDialog.tsx
-import { useState, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
-import { FileUpload } from "./FileUpload";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useDataStore } from "@/store/useDataStore";
@@ -21,22 +13,28 @@ interface ImportDialogProps {
 }
 
 export function ImportDialog({ disabled }: ImportDialogProps) {
-  const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
-
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, addFileToSlot } = useDataStore();
 
-  const handleFileUpload = useCallback(async (file: File) => {
+  const handleFileUpload = useCallback(async (fileOrFiles: File | FileList) => {
     setIsUploading(true);
     setError(null);
     
     try {
+      const file = fileOrFiles instanceof File ? fileOrFiles : fileOrFiles[0];
       const response = await uploadFile(file);
       setUploadedFile(response);
       setSlotDialogOpen(true);
+      
+      // Clear input for reuse
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
       console.error("Upload error:", error);
       setError(error instanceof Error ? error.message : "Failed to upload file");
@@ -52,60 +50,51 @@ export function ImportDialog({ disabled }: ImportDialogProps) {
       await addFileToSlot(uploadedFile, slot);
       setSlotDialogOpen(false);
       setUploadedFile(null);
-      setOpen(false);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Failed to add file to slot");
     }
   };
 
-  const handleOpenChange = useCallback((newOpen: boolean) => {
-    if (!isUploading) {
-      setOpen(newOpen);
-      if (!newOpen) {
-        setError(null);
-        setUploadedFile(null);
-      }
-    }
-  }, [isUploading]);
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger asChild>
-          <Button
-            className="w-full flex items-center gap-2 justify-center h-11"
-            variant="outline"
-            disabled={disabled || isUploading}
-          >
-            <Upload className="h-5 w-5" />
-            Import Data
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Import Data</DialogTitle>
-          </DialogHeader>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <div className="py-4">
-            <FileUpload
-              onFileAccepted={handleFileUpload}
-              maxSize={10}
-              allowedTypes={['.csv', '.json']}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".csv,.json"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleFileUpload(e.target.files);
+          }
+        }}
+      />
+
+      <Button
+        className="w-full flex items-center gap-2 justify-center h-11"
+        variant="outline"
+        onClick={triggerFileInput}
+        disabled={disabled || isUploading}
+      >
+        <Upload className="h-5 w-5" />
+        Import Data
+      </Button>
+
+      {error && (
+        <Alert variant="destructive" className="mt-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <FileSlotDialog
         open={slotDialogOpen}
         onOpenChange={setSlotDialogOpen}
         onSlotSelect={handleSlotSelect}
-        file={uploadedFile!}
+        file={uploadedFile}
       />
     </>
   );

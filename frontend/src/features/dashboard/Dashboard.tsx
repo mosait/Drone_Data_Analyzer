@@ -1,19 +1,17 @@
 // src/features/dashboard/Dashboard.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileType, Download, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileUpload } from '@/components/shared/FileUpload';
 import { Loader, AlertCircle } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { ExportDialog } from '@/components/shared/ExportDialog';
 import { FlightComparison } from './components/FlightComparison';
 import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
 import { FileUploadResponse } from '@/api/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function Dashboard() {
   const { 
@@ -28,11 +26,12 @@ export default function Dashboard() {
     addFileToSlot
   } = useDataStore();
 
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
   const [dragActive, setDragActive] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadRecentFiles();
@@ -43,6 +42,10 @@ export default function Dashboard() {
       clearError();
     };
   }, []);
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -71,7 +74,11 @@ export default function Dashboard() {
       const response = await uploadFile(file);
       setUploadedFile(response);
       setSlotDialogOpen(true);
-      setIsUploadDialogOpen(false);
+      
+      // Clear input for reuse
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
       console.error('Upload error:', error);
       setUploadError(error instanceof Error ? error.message : 'Failed to upload file');
@@ -103,6 +110,18 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-6 py-8">
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".csv,.json"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleFileUpload(e.target.files[0]);
+          }
+        }}
+      />
+
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertDescription>{error}</AlertDescription>
@@ -121,27 +140,6 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Dialog 
-                open={isUploadDialogOpen} 
-                onOpenChange={(open) => setIsUploadDialogOpen(open)}
-              >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Upload Drone Data</DialogTitle>
-                  </DialogHeader>
-                  {uploadError && (
-                    <Alert variant="destructive" className="mb-4">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{uploadError}</AlertDescription>
-                    </Alert>
-                  )}
-                  <FileUpload 
-                    onFileAccepted={handleFileUpload}
-                    maxSize={10}
-                    allowedTypes={['.csv', '.json']}
-                  />
-                </DialogContent>
-              </Dialog>
               <div
                 className={`
                   relative border-2 border-dashed rounded-lg p-8 h-[200px]
@@ -150,23 +148,12 @@ export default function Dashboard() {
                   transition-colors duration-200
                   cursor-pointer
                 `}
-                onClick={() => setIsUploadDialogOpen(true)}
+                onClick={triggerFileInput}
                 onDrop={handleDrop}
                 onDragOver={handleDrag}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
               >
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  accept=".csv,.json"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleFileUpload(e.target.files[0]);
-                    }
-                  }}
-                />
                 <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
                   <div className="p-4 bg-primary/10 rounded-full">
                     <FileType className="h-8 w-8 text-primary" />
@@ -220,7 +207,7 @@ export default function Dashboard() {
                 <Button
                   className="w-full flex items-center gap-2 justify-center h-11"
                   variant="outline"
-                  onClick={() => setIsUploadDialogOpen(true)}
+                  onClick={triggerFileInput}
                 >
                   <Upload className="h-5 w-5" />
                   Upload New File
