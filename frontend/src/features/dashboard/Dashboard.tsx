@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
     loadRecentFiles();
@@ -42,6 +43,27 @@ export default function Dashboard() {
       clearError();
     };
   }, []);
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      await handleFileUpload(file);
+    }
+  };
+  
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
 
   const handleFileUpload = async (file: File) => {
     setUploadError(null);
@@ -122,14 +144,30 @@ export default function Dashboard() {
               </Dialog>
               <div
                 className={`
-                  relative border-2 border-dashed rounded-lg p-8
+                  relative border-2 border-dashed rounded-lg p-8 h-[200px]
+                  ${dragActive ? 'border-primary bg-primary/10' : ''}
                   hover:border-primary hover:bg-primary/5
                   transition-colors duration-200
                   cursor-pointer
                 `}
                 onClick={() => setIsUploadDialogOpen(true)}
+                onDrop={handleDrop}
+                onDragOver={handleDrag}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
               >
-                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                <input
+                  type="file"
+                  id="file-upload"
+                  className="hidden"
+                  accept=".csv,.json"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleFileUpload(e.target.files[0]);
+                    }
+                  }}
+                />
+                <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
                   <div className="p-4 bg-primary/10 rounded-full">
                     <FileType className="h-8 w-8 text-primary" />
                   </div>
