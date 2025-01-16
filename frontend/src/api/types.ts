@@ -66,3 +66,11 @@ export interface FileSlots {
   slot1: FileUploadResponse | null;
   slot2: FileUploadResponse | null;
 }
+
+export interface MetricsMap {
+  [key: string]: {
+    flightMetrics: FlightMetrics;
+    timeSeries: any[];
+    summary: any;
+  }
+}

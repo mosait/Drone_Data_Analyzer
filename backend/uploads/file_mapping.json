@@ -22,5 +22,21 @@
     "id": "23dd881a-04cd-4c80-898d-04412ff92686",
     "status": "pending",
     "size": 2548
+  },
+  "304d6ecb-d6e6-4472-aab7-c7087fe97ea9": {
+    "filename": "sample_50.csv",
+    "timestamp": "2025-01-16T20:30:37.639471",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250116_203037_sample_50.csv",
+    "id": "304d6ecb-d6e6-4472-aab7-c7087fe97ea9",
+    "status": "pending",
+    "size": 2546
+  },
+  "6f4cd616-36f1-4a0a-a4ba-0a21a84c040f": {
+    "filename": "sample.csv",
+    "timestamp": "2025-01-16T20:30:41.461001",
+    "path": "C:\\Users\\moham\\OneDrive\\Desktop\\Latex\\Drone_Data_Analyzer\\backend\\uploads\\20250116_203041_sample.csv",
+    "id": "6f4cd616-36f1-4a0a-a4ba-0a21a84c040f",
+    "status": "pending",
+    "size": 392
   }
 }
