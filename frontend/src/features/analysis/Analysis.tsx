@@ -8,6 +8,7 @@ import { useDataStore } from '@/store/useDataStore';
 import { AltitudeChart } from './components/AltitudeChart';
 import { RadarChart } from './components/RadarChart';
 import GPSMap from './components/GPSMap';
+import AnalysisDataTable from './components/AnalysisDataTable';
 
 // Define interfaces for chart synchronization
 interface ChartSyncState {
@@ -170,17 +171,42 @@ const Analysis = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="altitude" className="space-y-4 mt-4">
+        <TabsContent value="altitude" className="space-y-8 mt-4">
           <AltitudeChart timeSeries={timeSeries} summary={summary} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Flight Data</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AnalysisDataTable data={currentData} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="radar" className="space-y-4 mt-4">
+        <TabsContent value="radar" className="space-y-8 mt-4">
           <RadarChart timeSeries={timeSeries} summary={summary} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Flight Data</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AnalysisDataTable data={currentData} />
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="gps" className="space-y-4 mt-4">
-          <Card className="h-[650px]">
+
+        <TabsContent value="gps" className="space-y-8 mt-4">
+          <Card className="h-[850px]">
             <GPSMap data={currentData} />
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Flight Data</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AnalysisDataTable data={currentData} />
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
