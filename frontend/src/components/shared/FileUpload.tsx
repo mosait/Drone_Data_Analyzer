@@ -1,6 +1,6 @@
 // src/components/shared/FileUpload.tsx
 import { useState, useCallback, useEffect } from 'react';
-import { Upload, FileType, AlertCircle } from 'lucide-react';
+import { FileType, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface FileUploadProps {

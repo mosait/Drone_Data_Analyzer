@@ -4,7 +4,6 @@ import { api } from '../api/endpoints';
 import type { 
   DroneData, 
   FileUploadResponse,
-  ProcessedData,
   FlightMetrics
 } from '../api/types';
 
@@ -27,6 +26,14 @@ interface DataState {
   error: string | null;
   isLoading: boolean;
   uploadProgress: number;
+
+  currentFile: FileUploadResponse | null;
+  currentData: DroneData[] | null;
+  metrics: {
+    flightMetrics: FlightMetrics | null;
+    timeSeries: any[] | null;
+    summary: any | null;
+  } | null;
 }
 
 interface DataActions {
@@ -52,6 +59,10 @@ const initialState: DataState = {
   error: null,
   isLoading: false,
   uploadProgress: 0,
+
+  metrics: null,
+  currentFile: null,
+  currentData: null,
 };
 
 export const useDataStore = create<DataState & DataActions>((set, get) => ({

@@ -8,7 +8,7 @@ import { DataTableComponent } from './components/DataTableComponent';
 import { MetricsCards } from './components/MetricsCards';
 
 export default function DataTable() {
-  const { currentDataMap, metricsMap, fileSlots, isLoading, error } = useDataStore();
+  const { currentDataMap, metricsMap, fileSlots, isLoading } = useDataStore();
   const [sharedPageSize, setSharedPageSize] = useState(10);
   const [sharedPageIndex, setSharedPageIndex] = useState(0);
   const [isSynced, setIsSynced] = useState(false);

@@ -1,5 +1,5 @@
 // src/features/analysis/components/ChartWrapper.tsx
-import { useEffect, useRef, ReactNode, useCallback, useState, useMemo } from 'react';
+import { useEffect, useRef, ReactNode, useCallback, useState } from 'react';
 
 interface ChartWrapperProps {
   children: ReactNode;

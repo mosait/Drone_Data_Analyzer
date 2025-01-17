@@ -2,11 +2,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileType, Clock, X } from 'lucide-react';
+import { Upload, FileType, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader, AlertCircle } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { FlightComparison } from './components/FlightComparison';
 import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
@@ -15,7 +15,6 @@ import { QuickActions } from './components/QuickActions';
 
 export default function Dashboard() {
   const { 
-    fileSlots,
     uploadFile, 
     recentFiles, 
     loadRecentFiles,
@@ -24,10 +23,8 @@ export default function Dashboard() {
     clearError,
     uploadProgress,
     addFileToSlot,
-    removeFileFromSlot
   } = useDataStore();
 
-  const [uploadError, setUploadError] = useState<string | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -69,7 +66,6 @@ export default function Dashboard() {
   };
 
   const handleFileUpload = async (file: File) => {
-    setUploadError(null);
     try {
       const response = await uploadFile(file);
       setUploadedFile(response);
@@ -81,7 +77,6 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Upload error:', error);
-      setUploadError(error instanceof Error ? error.message : 'Failed to upload file');
     }
   };
 
@@ -92,7 +87,7 @@ export default function Dashboard() {
         setSlotDialogOpen(false);
         setUploadedFile(null);
       } catch (error) {
-        setUploadError(error instanceof Error ? error.message : 'Failed to add file to slot');
+        console.log('Failed to add file to slot')
       }
     }
   };

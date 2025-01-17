@@ -1,5 +1,5 @@
 // src/features/analysis/components/GPSMap.tsx
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,7 +11,6 @@ interface GPSMapProps {
 }
 
 const GPSMap = ({ data }: GPSMapProps) => {
-  const [selectedPoint, setSelectedPoint] = useState<DroneData | null>(null);
   const mapRef = useRef<L.Map>(null);
   const defaultZoom = 15;
 
@@ -185,9 +184,6 @@ const GPSMap = ({ data }: GPSMapProps) => {
                 key={index}
                 position={[point.gps.latitude, point.gps.longitude]}
                 icon={pointIcon}
-                eventHandlers={{
-                  click: () => setSelectedPoint(point)
-                }}
               >
                 <Popup>
                   <div className="p-3 min-w-[200px]">

@@ -1,5 +1,5 @@
 // src/features/analysis/components/AnalysisDataTable.tsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -14,7 +14,6 @@ import { Input } from "@/components/ui/input";
 import type { DroneData } from "@/api/types";
 import { Search, X } from "lucide-react";
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
