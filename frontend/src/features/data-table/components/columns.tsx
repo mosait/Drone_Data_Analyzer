@@ -6,7 +6,7 @@ import { ArrowUpDown } from "lucide-react";
 
 // Common header button class
 const headerButtonClass = "w-full justify-center font-semibold";
-const columnClass = "w-[200px]"; // Fixed width for all columns
+const columnClass = "w-[150px]"; // Fixed width for all columns
 
 // Helper function to parse number comparison
 const parseNumberComparison = (value: string) => {
