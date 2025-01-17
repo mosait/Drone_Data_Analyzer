@@ -1,4 +1,4 @@
-# Stage 1: Build the React app
+# Stage 1: Build the Vite app
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY frontend/package*.json ./
@@ -8,6 +8,7 @@ RUN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
+COPY --from=build /app/dist .
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
