@@ -1,4 +1,33 @@
 # backend/app/core/config.py
+# This file defines the application's configuration settings using the `BaseSettings` class from Pydantic.
+# The following settings are defined:
+#
+# 1. General Application Settings:
+# - `API_V1_STR`: The base URL prefix for API endpoints (default: "/api/v1").
+# - `PROJECT_NAME`: The name of the project (default: "Drone Data Analyzer").
+#
+# 2. Directory Settings:
+# - `BASE_DIR`: The base directory of the application (resolved to three levels up from this file's location).
+# - `UPLOAD_DIR`: The directory where uploaded files will be stored.
+#   - If the `UPLOAD_DIR` does not exist, it is created automatically.
+#
+# 3. CORS (Cross-Origin Resource Sharing) Settings:
+# - `CORS_ORIGINS`: A list of allowed origins for cross-origin requests.
+#   - Includes typical development environments (e.g., `localhost:5173`, `localhost:3000`).
+#
+# 4. File Settings:
+# - `MAX_UPLOAD_SIZE`: The maximum allowed size for uploaded files (default: 10MB).
+# - `ALLOWED_EXTENSIONS`: The set of allowed file extensions (default: `.csv` and `.json`).
+#
+# 5. Configuration:
+# - The `Config` class sets `case_sensitive` to `True`, ensuring that environment variable names are case-sensitive.
+#
+# 6. Initialization:
+# - Ensures that the `UPLOAD_DIR` exists. If it does not, the directory is created (including parent directories if needed).
+# - Creates a `file_mapping.json` file in the `UPLOAD_DIR` if it does not exist.
+#   - Initializes this file with an empty JSON object (`{}`).
+#
+# This configuration module provides centralized and environment-variable-friendly settings management for the application.
 from pydantic_settings import BaseSettings
 from pathlib import Path
 import os

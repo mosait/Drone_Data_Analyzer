@@ -1,5 +1,25 @@
 # backend/app/utils/file_validator.py
-
+# This file provides utilities to validate the contents of uploaded files (CSV and JSON).
+# The following validations are performed:
+#
+# General Validations:
+# - The file size does not exceed a specified maximum (`max_size`).
+# - The file is not empty.
+# - The file content is UTF-8 encoded.
+#
+# CSV File Validations:
+# - The file has all required columns: "timestamp", "latitude", "longitude", "altitude", "radar_distance".
+# - All timestamps in the "timestamp" column are in the HH:MM:SS format.
+# - The "latitude", "longitude", "altitude", and "radar_distance" columns contain only numeric values.
+#
+# JSON File Validations:
+# - The file contains a valid JSON structure, which must be either an array of objects or a single object (converted to an array).
+# - Each object must contain the fields "timestamp", "gps", and "radar".
+# - The "timestamp" field must be in HH:MM:SS format.
+# - The "gps" field must contain the keys "latitude", "longitude", and "altitude".
+# - The "radar" field must contain the key "distance".
+#
+# Unsupported file types or files that do not pass these validations are rejected with an appropriate error message.
 import json
 import csv
 import pandas as pd

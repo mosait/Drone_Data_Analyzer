@@ -1,4 +1,33 @@
 # backend/app/services/data_processing.py
+# This file provides services for reading, processing, and handling data from uploaded files.
+# The following functionalities are implemented:
+#
+# 1. File Content Reading:
+# - The `read_file_content` function reads the content of a given file (CSV or JSON).
+# - It validates the existence of the file and raises an error if the file is not found.
+# - For CSV files:
+#   - The content is parsed into a pandas DataFrame.
+#   - Each row is converted into a dictionary with the required structure:
+#     - "timestamp" in HH:MM:SS format.
+#     - "gps" as a dictionary with "latitude", "longitude", and "altitude".
+#     - "radar" as a dictionary with "distance".
+# - For JSON files:
+#   - The content is loaded into a Python object.
+#   - If the file contains a single object, it is converted into a list.
+#   - Timestamps are validated and formatted as HH:MM:SS if necessary.
+# - Errors during file reading or processing raise a `ValueError` with detailed information.
+#
+# 2. File Processing:
+# - The `process_file` function processes an uploaded file using its ID and path.
+# - It reads the file content using `read_file_content` and performs additional processing:
+#   - Ensures that all timestamps are formatted as HH:MM:SS strings.
+# - The processed data is saved to a new JSON file with the same base name as the original file, suffixed with `_processed`.
+# - Any errors during processing are logged and raised for further handling.
+#
+# 3. Logging:
+# - The module uses the `logging` library to log debug and error messages for troubleshooting.
+#
+# This module supports integration with a file upload and processing pipeline to validate, process, and store drone-related data.
 import json
 import csv
 import pandas as pd

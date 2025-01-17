@@ -1,4 +1,61 @@
 # backend/app/api/v1/endpoints/data.py
+# This file implements FastAPI endpoints for managing drone data files, including data retrieval, processing, and export functionalities.
+# The following functionalities are provided:
+#
+# 1. **Data Retrieval Endpoint**:
+# - **GET `/{file_id}`**:
+#   - Fetches processed drone data for a specific file ID.
+#   - Retrieves the file path from the mapping using `get_file_path(file_id)`.
+#   - Reads and parses the file content (`JSON` or `CSV`) using `read_file_content(file_path)`.
+#   - Calculates various metrics such as altitude, radar distance, and flight duration using `calculate_metrics(data)`.
+#   - Optionally filters data based on start and end time (if provided via query parameters).
+#   - Returns processed data and calculated metrics in JSON format.
+#   - Handles errors such as missing files, empty data, or unexpected exceptions.
+#
+# 2. **Data Export Endpoint**:
+# - **GET `/{file_id}/export`**:
+#   - Exports drone data in a specified format (`csv` or `json`).
+#   - Retrieves the file path and reads data using `get_file_path(file_id)` and `read_file_content(file_path)`.
+#   - Formats data into CSV or JSON, depending on the requested format:
+#     - **CSV**:
+#       - Uses Python's `csv.writer` with proper newline handling to write data rows.
+#       - Includes a header row with columns: `timestamp, latitude, longitude, altitude, radar_distance`.
+#       - Returns a plain text response (`text/csv`) with the filename `drone_data.csv`.
+#     - **JSON**:
+#       - Formats data with proper indentation for readability.
+#       - Returns a plain text response (`application/json`) with the filename `drone_data.json`.
+#   - Handles errors such as unsupported formats, missing files, or export failures.
+#
+# 3. **Helper Functions**:
+# - `get_file_mapping()`:
+#   - Reads the `file_mapping.json` to retrieve the current mapping of file IDs to metadata.
+#   - Returns an empty dictionary if the mapping file is missing or encounters an error.
+#
+# - `get_file_path(file_id: str) -> Path`:
+#   - Retrieves the file path for a given file ID from the mapping.
+#   - Validates that the file exists and raises an HTTP exception if not found.
+#
+# - `read_file_content(file_path: Path) -> List[dict]`:
+#   - Reads and parses file content based on its extension (`.json` or `.csv`).
+#   - Handles file-specific formatting and normalization of fields like `latitude`, `longitude`, `altitude`, and `radar_distance`.
+#   - Returns a list of dictionaries representing the parsed records.
+#
+# - `calculate_metrics(data: List[dict])`:
+#   - Calculates various metrics for the dataset, including:
+#     - Altitude and distance statistics (min, max, average, change).
+#     - Flight duration based on timestamps.
+#     - Time-series data with normalized altitude and distance.
+#   - Returns a dictionary containing flight metrics, time-series data, and a summary.
+#
+# - `parse_time(time_str: str) -> time`:
+#   - Parses a time string in `HH:MM:SS` format and converts it to a `time` object.
+#   - Raises a `ValueError` for invalid formats.
+#
+# - `calculate_duration(start_time_str: str, end_time_str: str) -> float`:
+#   - Calculates the duration in minutes between two time strings.
+#
+# This file integrates with `file_mapping.json` and ensures seamless handling of drone data processing and export.
+# Logging is utilized extensively to track operations and handle errors gracefully.
 from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import JSONResponse
 from pathlib import Path
