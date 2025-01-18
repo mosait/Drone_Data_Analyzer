@@ -1,6 +1,0 @@
-ARCHITECTURE
-Framework: React
-Build Tool: Vite
-Variant: TypeScript
-Backend: FastAPI
----------------------------
