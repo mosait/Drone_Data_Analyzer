@@ -1,0 +1,59 @@
+```mermaid
+flowchart TB
+    %% Styling
+    classDef frontendClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef backendClass fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef storageClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef toolClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+
+    %% Frontend Layer
+    subgraph Frontend["Frontend (React + Vite + TypeScript)"]
+        direction TB
+        UI[/"User Interface"/]
+
+        subgraph FComponents["Frontend Components"]
+            direction TB
+            RC["React Components"]
+            SM["State Management (Redux)"]
+            APIService["API Service"]
+        end
+    end
+
+    %% Backend Layer
+    subgraph Backend["Backend (FastAPI Application)"]
+        direction TB
+        API[/"API Endpoints"/]
+
+        subgraph BComponents["Backend Components"]
+            direction TB
+            DM["Data Models"]
+            DB["Database (PostgreSQL)"]
+            FS["File Storage"]
+        end
+    end
+
+    %% Connections
+    UI --> RC
+    RC --> SM
+    RC --> APIService
+
+    SM --"State Updates"--> RC
+    SM --"State Queries"--> RC
+
+    APIService --"API Calls"--> API
+    API --"HTTP Responses"--> APIService
+
+    API --> DM
+    API --> DB
+    API --> FS
+
+    DM --"Uses Models"--> API
+    DB --"Stores Data"--> API
+    FS --"Handles Files"--> API
+
+    %% Adjusted Styling and Spacing
+    class Frontend,FComponents frontendClass
+    class Backend,BComponents backendClass
+    class UI,API toolClass
+    class DM,DB,FS storageClass
+```

@@ -21,6 +21,7 @@ import {
   OnChangeFn,
 } from "@tanstack/react-table";
 import { columns } from './Columns';
+import { Button } from '@/components/ui/button';
 import { api } from '@/api/endpoints';
 import { ColumnFilter } from './ColumnFilter';
 import { DataTableHeader } from './DataTableHeader';
@@ -221,7 +222,7 @@ export function DataTableComponent({
                               header.getContext()
                             )}
                             {effectiveShowFilters && (
-                              <div className="mt-2">
+                              <div className="mt-1">
                                 <ColumnFilter column={header.column} />
                               </div>
                             )}

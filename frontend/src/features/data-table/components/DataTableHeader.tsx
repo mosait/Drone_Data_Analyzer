@@ -69,21 +69,23 @@ export function DataTableHeader({
       <div className="flex items-center justify-between py-4">
         <div className="flex items-center flex-1">
           <Search className="h-4 w-4 mr-2 text-muted-foreground" />
-          <Input
-            placeholder="Search all columns..."
-            value={globalFilter ?? ""}
-            onChange={(event) => onGlobalFilterChange(event.target.value)}
-            className="max-w-sm"
-          />
-          {globalFilter && (
-            <Button
-              variant="ghost"
-              onClick={() => onGlobalFilterChange("")}
-              className="ml-2 h-8 px-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+          <div className="relative flex-1 max-w-sm">
+            <Input
+              placeholder="Search all columns..."
+              value={globalFilter ?? ""}
+              onChange={(event) => onGlobalFilterChange(event.target.value)}
+              className="w-full text-sm pr-7"
+            />
+            {globalFilter && (
+              <Button
+                variant="ghost"
+                onClick={() => onGlobalFilterChange("")}
+                className="h-full px-2 absolute right-0 top-0 hover:bg-transparent"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
         <div className="flex items-center space-x-2 ml-4">
           <Checkbox
