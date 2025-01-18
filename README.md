@@ -6,14 +6,16 @@
 
 # Drone Analytics
 
-### Architecture
+Compare and analyze drone data with ease.
+
+## Architecture
 
 - Framework: React (v18.3.1)
 - Build Tool: Vite (v6.0.7)
 - Variant: TypeScript (v5.6.3)
 - Backend: FastAPI (v0.115.6 with Python v3.12.6)
 
-### Run Application
+## Run Application
 
 #### Docker (Recommended)
 
