@@ -53,3 +53,42 @@ npm run dev
 ```
 
 Then navigate to `http://localhost:5173/` to access the application.
+
+## Data Formats
+
+Currently the application only supports imports and exports as
+
+- CSV
+- JSON
+
+When importing data the files will be saved in `/uploads/` and can be used afterwards via Recent Files without the need of a second import.
+The folder `/uploads/` as well as the file `/uploads/file_mapping.json` will be created automatically if they do not exist.
+
+#### CSV Structure
+
+```
+timestamp,latitude,longitude,altitude,radar_distance
+10:00:00,48.7758,9.1829,100,80
+10:01:00,48.7760,9.1832,120,85
+10:02:00,48.7763,9.1835,150,90
+...
+```
+
+#### JSON Structure
+
+```
+[
+  {
+    "timestamp": "10:00:00",
+    "gps": {
+      "latitude": 48.7758,
+      "longitude": 9.1829,
+      "altitude": 100
+    },
+    "radar": {
+      "distance": 80
+    }
+  },
+  ...
+]
+```
