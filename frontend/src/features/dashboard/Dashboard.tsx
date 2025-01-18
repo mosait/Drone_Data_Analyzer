@@ -33,13 +33,8 @@ export default function Dashboard() {
     loadRecentFiles();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      clearError();
-    };
-  }, []);
-
   const triggerFileInput = () => {
+    setError(null); // Clear error before opening file dialog
     fileInputRef.current?.click();
   };
 
@@ -47,6 +42,7 @@ export default function Dashboard() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
+    setError(null); // Clear error before handling dropped file
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
@@ -66,6 +62,7 @@ export default function Dashboard() {
 
   const handleFileUpload = async (file: File) => {
     try {
+      setError(null); // Clear any existing errors
       const response = await uploadFile(file);
       setUploadedFile(response);
       setSlotDialogOpen(true);
@@ -78,11 +75,15 @@ export default function Dashboard() {
       const errorMessage = error instanceof Error 
         ? error.message 
         : 'Failed to upload file';
-        
       setError(errorMessage);
+      
+      // Clear input to allow re-uploading the same file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
-
+  
   const handleSlotSelect = async (slot: 1 | 2) => {
     if (uploadedFile) {
       try {

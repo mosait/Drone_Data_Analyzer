@@ -9,33 +9,42 @@ interface FileUploadErrorProps {
 }
 
 export function FileUploadError({ error, onDismiss }: FileUploadErrorProps) {
-  // Split the error message if it contains specific details
-  const [mainError, ...details] = error.split('\n');
+  // Split the error message into title and details
+  const [errorTitle, ...details] = error.split('\n');
 
   return (
     <Alert variant="destructive" className="mb-4">
-      <AlertCircle className="h-4 w-4" />
-      <div className="flex-1">
-        <AlertTitle>Upload Failed</AlertTitle>
-        <AlertDescription className="mt-2">
-          <p className="font-medium">{mainError}</p>
+      <div className="flex w-full">
+        <AlertCircle className="h-4 w-4 mt-0.5" />
+        
+        <div className="flex-1 ml-3">
+          <AlertTitle className="font-semibold tracking-tight">
+            {errorTitle}
+          </AlertTitle>
+          
           {details.length > 0 && (
-            <ul className="mt-2 list-disc list-inside space-y-1">
-              {details.map((detail, index) => (
-                <li key={index} className="text-sm">{detail}</li>
-              ))}
-            </ul>
+            <AlertDescription>
+              <ul className="mt-2 space-y-1 text-sm">
+                {details.map((detail, index) => (
+                  <li key={index} className="flex items-center">
+                    <span className="text-red-300 mr-2">•</span>
+                    {detail}
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
           )}
-        </AlertDescription>
+        </div>
+
+        <Button
+          variant="destructive"
+          size="icon"
+          className="h-6 w-6 ml-2"
+          onClick={onDismiss}
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
-      <Button
-        variant="destructive"
-        size="icon"
-        className="ml-2 h-6 w-6"
-        onClick={onDismiss}
-      >
-        <X className="h-4 w-4" />
-      </Button>
     </Alert>
   );
 }

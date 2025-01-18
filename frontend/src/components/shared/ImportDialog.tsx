@@ -1,12 +1,11 @@
 // src/components/shared/ImportDialog.tsx
 import { useState, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { useDataStore } from "@/store/useDataStore";
-import { FileSlotDialog } from "./FileSlotDialog";
-import type { FileUploadResponse } from "@/api/types";
+import { Button } from '@/components/ui/button';
+import { Upload } from 'lucide-react';
+import { FileUploadError } from './FileUploadError';
+import { useDataStore } from '@/store/useDataStore';
+import { FileUploadResponse } from '@/api/types';
+import { FileSlotDialog } from './FileSlotDialog';
 
 interface ImportDialogProps {
   disabled?: boolean;
@@ -17,13 +16,17 @@ export function ImportDialog({ disabled }: ImportDialogProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
-  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, addFileToSlot } = useDataStore();
 
+  const triggerFileInput = () => {
+    setError(null); // Clear error before opening file dialog
+    fileInputRef.current?.click();
+  };
+
   const handleFileUpload = useCallback(async (fileOrFiles: File | FileList) => {
     setIsUploading(true);
-    setError(null);
+    setError(null); // Clear any existing errors
     
     try {
       const file = fileOrFiles instanceof File ? fileOrFiles : fileOrFiles[0];
@@ -36,8 +39,15 @@ export function ImportDialog({ disabled }: ImportDialogProps) {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error("Upload error:", error);
-      setError(error instanceof Error ? error.message : "Failed to upload file");
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to upload file';
+      setError(errorMessage);
+      
+      // Clear input to allow re-uploading the same file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } finally {
       setIsUploading(false);
     }
@@ -50,13 +60,13 @@ export function ImportDialog({ disabled }: ImportDialogProps) {
       await addFileToSlot(uploadedFile, slot);
       setSlotDialogOpen(false);
       setUploadedFile(null);
+      setError(null); // Clear any errors after successful slot assignment
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Failed to add file to slot");
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to add file to slot';
+      setError(errorMessage);
     }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
   };
 
   return (
@@ -73,6 +83,15 @@ export function ImportDialog({ disabled }: ImportDialogProps) {
         }}
       />
 
+      {error && (
+        <div className="mb-2">
+          <FileUploadError 
+            error={error}
+            onDismiss={() => setError(null)}
+          />
+        </div>
+      )}
+
       <Button
         className="w-full flex items-center gap-2 justify-center h-11"
         variant="outline"
@@ -81,14 +100,8 @@ export function ImportDialog({ disabled }: ImportDialogProps) {
       >
         <Upload className="h-5 w-5" />
         Import Data
+        {isUploading && <span className="ml-2">...</span>}
       </Button>
-
-      {error && (
-        <Alert variant="destructive" className="mt-2">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       <FileSlotDialog
         open={slotDialogOpen}

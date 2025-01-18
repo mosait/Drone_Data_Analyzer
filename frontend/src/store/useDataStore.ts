@@ -4,13 +4,9 @@ import { api } from '../api/endpoints';
 import type { 
   DroneData, 
   FileUploadResponse,
-  FlightMetrics
+  FlightMetrics,
+  FileSlots
 } from '../api/types';
-
-interface FileSlots {
-  slot1: FileUploadResponse | null;
-  slot2: FileUploadResponse | null;
-}
 
 interface DataState {
   fileSlots: FileSlots;
@@ -26,14 +22,6 @@ interface DataState {
   error: string | null;
   isLoading: boolean;
   uploadProgress: number;
-
-  currentFile: FileUploadResponse | null;
-  currentData: DroneData[] | null;
-  metrics: {
-    flightMetrics: FlightMetrics | null;
-    timeSeries: any[] | null;
-    summary: any | null;
-  } | null;
 }
 
 interface DataActions {
@@ -51,18 +39,53 @@ const initialState: DataState = {
     slot1: null,
     slot2: null
   },
-  selectedFiles: [], // Initialize empty array
-  currentFiles: [], // Initialize empty array
+  selectedFiles: [],
+  currentFiles: [],
   currentDataMap: {},
   metricsMap: {},
   recentFiles: [],
   error: null,
   isLoading: false,
   uploadProgress: 0,
+};
 
-  metrics: null,
-  currentFile: null,
-  currentData: null,
+// Helper function to format error messages
+const formatErrorMessage = (error: any): string => {
+  // If we received a detailed error message from our backend validator
+  if (error.response?.data?.detail) {
+    const detail = error.response.data.detail;
+    // Format backend validation messages
+    if (detail.includes("Missing required columns")) {
+      return `File Structure Error\n${detail}\nEnsure your CSV file has all required columns`;
+    }
+    if (detail.includes("Invalid timestamp format")) {
+      return `Invalid Time Format\n${detail}\nMake sure all timestamps are in HH:MM:SS format`;
+    }
+    if (detail.includes("Non-numeric values")) {
+      return `Invalid Data Type\n${detail}\nAll coordinate and distance values must be numbers`;
+    }
+    if (detail.includes("Missing GPS fields")) {
+      return `Missing Data\n${detail}\nCheck that your JSON file has the correct structure`;
+    }
+    // Return other backend messages as is
+    return `Validation Error\n${detail}`;
+  }
+
+  // Handle common HTTP errors
+  if (error.response?.status === 413) {
+    return 'File Too Large\nThe maximum allowed file size is 10MB\nTry compressing your file';
+  }
+  if (error.response?.status === 415) {
+    return 'Invalid File Type\nOnly .csv and .json files are supported\nCheck your file extension';
+  }
+
+  // Handle network errors
+  if (error.message === 'Network Error') {
+    return 'Connection Error\nCould not reach the server\nPlease check your internet connection';
+  }
+
+  // Fallback for unexpected errors
+  return 'Upload Failed\nAn unexpected error occurred\nPlease try again or contact support';
 };
 
 export const useDataStore = create<DataState & DataActions>((set, get) => ({
@@ -88,6 +111,17 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
     try {
       set({ isLoading: true, error: null, uploadProgress: 10 });
       
+      // Client-side validation
+      if (!file.name.match(/\.(csv|json)$/i)) {
+        throw new Error('Invalid File Type\nOnly .csv and .json files are supported\nCheck your file extension');
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(
+          `File Too Large\nMaximum size: 10MB\nCurrent size: ${(file.size / (1024 * 1024)).toFixed(1)}MB`
+        );
+      }
+
       const response = await api.files.upload(file);
       set({ uploadProgress: 50 });
       
@@ -96,8 +130,8 @@ export const useDataStore = create<DataState & DataActions>((set, get) => ({
       
       return response;
     } catch (error) {
-      console.error('Error uploading file:', error);
-      throw error;
+      const errorMessage = formatErrorMessage(error);
+      throw new Error(errorMessage);
     } finally {
       set({ isLoading: false });
       setTimeout(() => get().setUploadProgress(0), 1000);

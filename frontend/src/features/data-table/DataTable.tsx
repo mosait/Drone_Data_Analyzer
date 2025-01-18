@@ -6,7 +6,6 @@ import { Loader, AlertCircle } from 'lucide-react';
 import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import { DataTableComponent } from './components/DataTableComponent';
 import { MetricsCards } from '@/components/shared/MetricsCards';
-import { FlightMetrics } from '@/api/types';
 
 export default function DataTable() {
   const { currentDataMap, metricsMap, fileSlots, isLoading } = useDataStore();
@@ -102,7 +101,7 @@ export default function DataTable() {
       </div>
     );
   };
-  
+
   const hasBothFiles = Boolean(fileSlots.slot1 && fileSlots.slot2);
 
   return (
