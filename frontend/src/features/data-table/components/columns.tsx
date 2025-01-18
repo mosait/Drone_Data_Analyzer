@@ -7,37 +7,42 @@ import { ArrowUpDown } from "lucide-react";
 const columnClass = "flex items-center justify-center min-w-[130px]";
 const headerButtonClass = "h-8 font-medium flex items-center justify-center";
 
-// Helper functions for numeric filtering (keeping the existing ones)
-const parseNumberComparison = (value: string) => {
-  const ops = ["<=", ">=", "<", ">", "="];
-  let operator = "=";
-  let number = value;
-
-  for (const op of ops) {
-    if (value.startsWith(op)) {
-      operator = op;
-      number = value.substring(op.length);
-      break;
-    }
-  }
-
-  const num = parseFloat(number);
-  if (isNaN(num)) return null;
-
-  return { operator, number: num };
+// Improved number comparison parsing
+const parseNumberComparison = (value: string): { operator: string; number: number } | null => {
+  // Trim whitespace and convert to lowercase
+  const trimmedValue = value.trim().toLowerCase();
+  
+  // Regular expression to match the pattern: operator followed by number
+  const pattern = /^(<=|>=|<|>|=)?\s*(-?\d+\.?\d*)$/;
+  const match = trimmedValue.match(pattern);
+  
+  if (!match) return null;
+  
+  const [, operator = '=', numberStr] = match;
+  const number = parseFloat(numberStr);
+  
+  if (isNaN(number)) return null;
+  
+  return { operator, number };
 };
 
+// Improved numeric filter function
 const numericFilter = (value: number, filterValue: string): boolean => {
-  const comparison = parseNumberComparison(filterValue);
-  if (!comparison) return true;
+  // Early return if filter is empty
+  if (!filterValue.trim()) return true;
 
-  switch (comparison.operator) {
-    case "<=": return value <= comparison.number;
-    case ">=": return value >= comparison.number;
-    case "<": return value < comparison.number;
-    case ">": return value > comparison.number;
-    case "=": return value === comparison.number;
-    default: return true;
+  const comparison = parseNumberComparison(filterValue);
+  if (!comparison) return false; // Invalid filter format
+
+  const { operator, number } = comparison;
+
+  switch (operator) {
+    case '<=': return value <= number;
+    case '>=': return value >= number;
+    case '<': return value < number;
+    case '>': return value > number;
+    case '=': return value === number;
+    default: return value === number; // Default to equality
   }
 };
 
@@ -62,6 +67,11 @@ export const columns: ColumnDef<DroneData>[] = [
         #{row.index + 1}
       </div>
     ),
+    filterFn: (row, id, filterValue) => {
+      // Add 1 to index for waypoint number
+      const value = row.index + 1;
+      return numericFilter(value, filterValue);
+    },
   },
   {
     accessorKey: "timestamp",
