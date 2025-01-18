@@ -1,9 +1,7 @@
 // src/api/endpoints.ts
 import { apiClient } from './client';
-import { transformDroneData } from '@/utils/data-transformers';
 import type { 
-  FileUploadResponse, 
-  DroneData, 
+  FileUploadResponse,
   ProcessedData 
 } from '@/api/types';
 
@@ -41,51 +39,15 @@ export const api = {
   analysis: {
     export: async (fileId: string, format: 'csv' | 'json'): Promise<Blob> => {
       try {
-        const response = await apiClient.get<ProcessedData>(`/api/v1/data/${fileId}`);
-        const droneData = response.data.data;
-
-        if (format === 'csv') {
-          return createCSVBlob(droneData);
-        } else {
-          return createJSONBlob(droneData);
-        }
+        const response = await apiClient.get(`/api/v1/data/${fileId}/export?format=${format}`, {
+          responseType: 'blob'  // Important for handling binary data
+        });
+        
+        return response.data;
       } catch (error) {
         console.error('Export error:', error);
         throw error;
       }
     }
   }
-};
-
-function formatTime(dateStr: string): string {
-  return dateStr; // Time is already in HH:MM:SS format
-}
-
-function createCSVBlob(data: DroneData[]): Blob {
-  // Create CSV header
-  const headers = ['timestamp', 'latitude', 'longitude', 'altitude', 'radar_distance'];
-  
-  // Create CSV rows
-  const rows = data.map(item => [
-    item.timestamp,
-    item.gps.latitude,
-    item.gps.longitude,
-    item.gps.altitude,
-    item.radar.distance
-  ]);
-
-  // Combine headers and rows
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
-
-  return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-}
-
-function createJSONBlob(data: DroneData[]): Blob {
-  return new Blob(
-    [JSON.stringify(data, null, 2)], 
-    { type: 'application/json;charset=utf-8;' }
-  );
 }

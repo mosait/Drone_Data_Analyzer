@@ -1,59 +1,98 @@
 // src/features/dashboard/Dashboard.tsx
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileType, Download, Clock } from 'lucide-react';
+import { Upload, FileType, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileUpload } from '@/components/shared/FileUpload';
-import { Loader, AlertCircle } from 'lucide-react';
+import { Loader } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
-import { ExportDialog } from '@/components/shared/ExportDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FlightComparison } from './components/FlightComparison';
+import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
+import { FileUploadResponse } from '@/api/types';
+import { FileUploadError } from '@/components/shared/FileUploadError';
+import { QuickActions } from './components/QuickActions';
 
 export default function Dashboard() {
   const { 
-    currentData, 
-    metrics,
     uploadFile, 
     recentFiles, 
-    selectedFile, 
     loadRecentFiles,
     isLoading,
-    error,
     clearError,
     uploadProgress,
-    selectFile
+    addFileToSlot,
   } = useDataStore();
-
-  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const itemsPerPage = 10; // Number of files per page
-  const [currentPage, setCurrentPage] = useState(0);
-
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [recentFiles]);
+  const [error, setError] = useState<string | null>(null);
+  const [slotDialogOpen, setSlotDialogOpen] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadRecentFiles();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      clearError();
-    };
-  }, []);
+  const triggerFileInput = () => {
+    setError(null); // Clear error before opening file dialog
+    fileInputRef.current?.click();
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    setError(null); // Clear error before handling dropped file
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      await handleFileUpload(file);
+    }
+  };
+  
+  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
 
   const handleFileUpload = async (file: File) => {
-    setUploadError(null);
     try {
-      await uploadFile(file);
-      setIsUploadDialogOpen(false);  // Close dialog after successful upload
+      setError(null); // Clear any existing errors
+      const response = await uploadFile(file);
+      setUploadedFile(response);
+      setSlotDialogOpen(true);
+      
+      // Clear input for reuse
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
-      console.error('Upload error:', error);
-      setUploadError(error instanceof Error ? error.message : 'Failed to upload file');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to upload file';
+      setError(errorMessage);
+      
+      // Clear input to allow re-uploading the same file
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+  
+  const handleSlotSelect = async (slot: 1 | 2) => {
+    if (uploadedFile) {
+      try {
+        await addFileToSlot(uploadedFile, slot);
+        setSlotDialogOpen(false);
+        setUploadedFile(null);
+      } catch (error) {
+        console.log('Failed to add file to slot')
+      }
     }
   };
 
@@ -69,11 +108,24 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
+    <div className="container mx-auto px-6 py-2">
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept=".csv,.json"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleFileUpload(e.target.files[0]);
+          }
+        }}
+      />
+
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <FileUploadError 
+          error={error}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -88,37 +140,21 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Dialog 
-                open={isUploadDialogOpen} 
-                onOpenChange={(open) => setIsUploadDialogOpen(open)}
-              >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Upload Drone Data</DialogTitle>
-                  </DialogHeader>
-                  {uploadError && (
-                    <Alert variant="destructive" className="mb-4">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{uploadError}</AlertDescription>
-                    </Alert>
-                  )}
-                  <FileUpload 
-                    onFileAccepted={handleFileUpload}
-                    maxSize={10}
-                    allowedTypes={['.csv', '.json']}
-                  />
-                </DialogContent>
-              </Dialog>
               <div
                 className={`
-                  relative border-2 border-dashed rounded-lg p-8
+                  relative border-2 border-dashed rounded-lg p-8 h-[255px]
+                  ${dragActive ? 'border-primary bg-primary/10' : ''}
                   hover:border-primary hover:bg-primary/5
                   transition-colors duration-200
                   cursor-pointer
                 `}
-                onClick={() => setIsUploadDialogOpen(true)}
+                onClick={triggerFileInput}
+                onDrop={handleDrop}
+                onDragOver={handleDrag}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
               >
-                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                <div className="flex flex-col items-center justify-center h-full space-y-4 text-center">
                   <div className="p-4 bg-primary/10 rounded-full">
                     <FileType className="h-8 w-8 text-primary" />
                   </div>
@@ -140,74 +176,28 @@ export default function Dashboard() {
             <FolderMonitor onFileFound={handleFileUpload} />
           </Card>
 
-          {/* Flight Metrics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Flight Metrics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {Array.isArray(currentData) && currentData.length > 0 && metrics?.flightMetrics ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Max Altitude</p>
-                    <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.maxAltitude.toFixed(2)}m
-                    </p>
+          {/* Flight Comparison */}
+          <FlightComparison />
+
+          {/* Upload Progress */}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <Card className="mt-6">
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Processing file...</span>
+                    <span>{uploadProgress}%</span>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Flight Duration</p>
-                    <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.duration.toFixed(2)}min
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Avg Distance</p>
-                    <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.avgDistance.toFixed(2)}m
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Data Points</p>
-                    <p className="text-2xl font-bold">
-                      {metrics.flightMetrics.totalPoints.toFixed(2)}
-                    </p>
-                  </div>
+                  <Progress value={uploadProgress} />
                 </div>
-              ) : (
-                <div className="flex items-center justify-center h-32">
-                  <p className="text-sm text-muted-foreground">
-                    Select or upload a file to view metrics
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Column */}
         <div>
-          {/* Quick Actions */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex flex-col justify-center h-[195px] space-y-4">
-                <Button
-                  className="w-full flex items-center gap-2 justify-center h-11"
-                  variant="outline"
-                  onClick={() => setIsUploadDialogOpen(true)}
-                >
-                  <Upload className="h-5 w-5" />
-                  Upload New File
-                </Button>
-                <ExportDialog
-                  selectedFile={selectedFile}
-                  disabled={!selectedFile}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        <QuickActions onUploadClick={triggerFileInput} />
 
           {/* Recent Files */}
           <Card>
@@ -219,53 +209,29 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               {recentFiles && recentFiles.length > 0 ? (
-                <>
-                  <div className="space-y-2 h-[400px] overflow-hidden">
-                    {recentFiles
-                      .slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage)
-                      .map((file) => (
-                      <Button
-                        key={file.id}
-                        variant="ghost"
-                        className={`w-full flex items-center justify-between p-2 h-auto ${
-                          selectedFile?.id === file.id ? 'bg-primary/10' : ''
-                        }`}
-                        onClick={() => selectFile(file)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <FileType className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium truncate">
-                            {file.filename}
-                          </span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(file.timestamp).toLocaleDateString()}
+                <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                  {recentFiles.map((file) => (
+                    <Button
+                      key={file.id}
+                      variant="ghost"
+                      className="w-full flex items-center justify-between p-2 h-auto"
+                      onClick={() => {
+                        setUploadedFile(file);
+                        setSlotDialogOpen(true);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FileType className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium truncate">
+                          {file.filename}
                         </span>
-                      </Button>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                      disabled={currentPage === 0}
-                    >
-                      Previous
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(file.timestamp).toLocaleDateString()}
+                      </span>
                     </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Page {currentPage + 1} of {Math.ceil(recentFiles.length / itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => prev + 1)}
-                      disabled={(currentPage + 1) * itemsPerPage >= recentFiles.length}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </>
+                  ))}
+                </div>
               ) : (
                 <div className="flex items-center justify-center h-32">
                   <p className="text-sm text-muted-foreground">No recent files</p>
@@ -274,24 +240,14 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Upload Progress */}
-        {uploadProgress > 0 && uploadProgress < 100 && (
-          <div className="lg:col-span-3">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Processing file...</span>
-                    <span>{uploadProgress}%</span>
-                  </div>
-                  <Progress value={uploadProgress} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
       </div>
+
+      <FileSlotDialog
+        open={slotDialogOpen}
+        onOpenChange={setSlotDialogOpen}
+        onSlotSelect={handleSlotSelect}
+        file={uploadedFile}
+      />
     </div>
   );
 }

@@ -1,84 +1,45 @@
-// Analysis.tsx
+// src/features/analysis/Analysis.tsx
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDataStore } from '@/store/useDataStore';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertCircle, Loader } from 'lucide-react';
-import { useDataStore } from '@/store/useDataStore';
-import { AltitudeChart } from './components/AltitudeChart';
-import { RadarChart } from './components/RadarChart';
-import GPSMap from './components/GPSMap';
-import AnalysisDataTable from './components/AnalysisDataTable';
+import { AllDataView } from './views/AllDataView';
+import { AltitudeAnalysisView } from './views/AltitudeAnalysisView';
+import { RadarAnalysisView } from './views/RadarAnalysisView';
+import { GPSTrackView } from './views/GPSTrackView';
+import { MetricsCards } from '@/components/shared/MetricsCards';
 
-// Define interfaces for chart synchronization
-interface ChartSyncState {
-  activeIndex: number | null;
-  mouseX: number;
-  mouseY: number;
-}
-
-interface SyncHoverProps {
-  activeTooltipIndex: number | null;
-  onHover: (state: ChartSyncState | null) => void;
-  syncState: ChartSyncState;
-}
-
-const Analysis = () => {
+export default function Analysis() {
   const { 
-    currentData, 
-    currentFile,
-    metrics,
+    currentDataMap, 
+    metricsMap, 
+    fileSlots,
     isLoading,
-    error,
   } = useDataStore();
 
-  const [activeTabValue, setActiveTabValue] = useState("all");
-  const [syncedChartState, setSyncedChartState] = useState<ChartSyncState>({
-    activeIndex: null,
-    mouseX: 0,
-    mouseY: 0
-  });
+  const [activeTab, setActiveTab] = useState("all");
 
-  // Configure chart synchronization props
-  const syncHoverProps: SyncHoverProps = {
-    activeTooltipIndex: syncedChartState.activeIndex,
-    syncState: syncedChartState,
-    onHover: (state: ChartSyncState | null) => {
-      if (state) {
-        setSyncedChartState(state);
-      } else {
-        setSyncedChartState({
-          activeIndex: null,
-          mouseX: 0,
-          mouseY: 0
-        });
-      }
-    }
-  };
+  // Get data and file information
+  const data1 = fileSlots.slot1 ? currentDataMap[fileSlots.slot1.id] : undefined;
+  const data2 = fileSlots.slot2 ? currentDataMap[fileSlots.slot2.id] : undefined;
+  const fileName1 = fileSlots.slot1?.filename;
+  const fileName2 = fileSlots.slot2?.filename;
+  const metrics1 = fileSlots.slot1 ? metricsMap[fileSlots.slot1.id]?.flightMetrics : undefined;
+  const metrics2 = fileSlots.slot2 ? metricsMap[fileSlots.slot2.id]?.flightMetrics : undefined;
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-6 py-20">
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
         <div className="text-center space-y-4">
-          <Loader className="h-8 w-8 animate-spin mx-auto" />
-          <p className="text-lg">Loading data...</p>
+          <Loader className="w-8 h-8 animate-spin mx-auto" />
+          <p className="text-lg">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6 py-20">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (!currentFile || !currentData || !metrics?.flightMetrics || !metrics?.timeSeries || !metrics?.summary) {
+  if (!fileSlots.slot1 && !fileSlots.slot2) {
     return (
       <div className="p-6 py-8">
         <Alert>
@@ -91,52 +52,64 @@ const Analysis = () => {
     );
   }
 
-  const { flightMetrics, timeSeries, summary } = metrics;
+  // Ensure we have at least one set of valid data
+  if (!data1 && !data2) {
+    return (
+      <div className="p-6 py-8">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            No valid data found for analysis. Please try uploading the files again.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const renderMetrics = (fileId: string) => {
+    const metrics = metricsMap[fileId]?.flightMetrics;
+    const otherFileId = Object.values(fileSlots)
+      .find(file => file && file.id !== fileId)?.id;
+    
+    const otherMetrics = otherFileId && metricsMap[otherFileId]?.flightMetrics 
+      ? metricsMap[otherFileId].flightMetrics 
+      : undefined;
+
+    if (!metrics) return null;
+
+    return (
+      <MetricsCards 
+        metrics={metrics}
+        otherMetrics={otherMetrics}
+        hasBothFiles={Boolean(fileSlots.slot1 && fileSlots.slot2)}
+      />
+    );
+  };
 
   return (
     <div className="space-y-8 p-8 mb-24">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Duration</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.duration.toFixed(2)} min</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Max Altitude</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.maxAltitude.toFixed(2)}m</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Distance</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.maxDistance.toFixed(2)}m</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Data Points</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{flightMetrics.totalPoints.toFixed(2)}</p>
-          </CardContent>
-        </Card>
+      {/* Metrics Section */}
+      <div className={`grid ${fileSlots.slot1 && fileSlots.slot2 ? 'grid-cols-2 gap-8' : 'grid-cols-1'}`}>
+        {fileSlots.slot1 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">File 1: {fileSlots.slot1.filename}</h2>
+            {renderMetrics(fileSlots.slot1.id)}
+          </div>
+        )}
+        {fileSlots.slot2 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold">File 2: {fileSlots.slot2.filename}</h2>
+            {renderMetrics(fileSlots.slot2.id)}
+          </div>
+        )}
       </div>
 
       {/* Analysis Tabs */}
       <Tabs 
         defaultValue="all" 
         className="space-y-4"
-        value={activeTabValue}
-        onValueChange={setActiveTabValue}
+        value={activeTab}
+        onValueChange={setActiveTab}
       >
         <div className="border-b">
           <TabsList className="w-full justify-start">
@@ -148,70 +121,41 @@ const Analysis = () => {
         </div>
 
         <TabsContent value="all" className="space-y-4 mt-4">
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <AltitudeChart 
-                timeSeries={timeSeries} 
-                summary={summary} 
-                syncHover={syncHoverProps}
-              />
-            </div>
-            <div>
-              <RadarChart 
-                timeSeries={timeSeries} 
-                summary={summary} 
-                syncHover={syncHoverProps}
-              />
-            </div>
-            <div className="col-span-2">
-              <Card className="h-[750px]">
-                <GPSMap data={currentData} />
-              </Card>
-            </div>
-          </div>
+          <AllDataView 
+            data1={data1!}
+            data2={data2}
+            fileName1={fileName1!}
+            fileName2={fileName2}
+          />
         </TabsContent>
 
         <TabsContent value="altitude" className="space-y-8 mt-4">
-          <AltitudeChart timeSeries={timeSeries} summary={summary} />
-          <Card>
-            <CardHeader>
-              <CardTitle>Flight Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AnalysisDataTable data={currentData} />
-            </CardContent>
-          </Card>
+          <AltitudeAnalysisView 
+            data1={data1!}
+            data2={data2}
+            fileName1={fileName1!}
+            fileName2={fileName2}
+          />
         </TabsContent>
 
         <TabsContent value="radar" className="space-y-8 mt-4">
-          <RadarChart timeSeries={timeSeries} summary={summary} />
-          <Card>
-            <CardHeader>
-              <CardTitle>Flight Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AnalysisDataTable data={currentData} />
-            </CardContent>
-          </Card>
+          <RadarAnalysisView 
+            data1={data1!}
+            data2={data2}
+            fileName1={fileName1!}
+            fileName2={fileName2}
+          />
         </TabsContent>
 
-
         <TabsContent value="gps" className="space-y-8 mt-4">
-          <Card className="h-[850px]">
-            <GPSMap data={currentData} />
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Flight Data</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <AnalysisDataTable data={currentData} />
-            </CardContent>
-          </Card>
+          <GPSTrackView 
+            data1={data1!}
+            data2={data2}
+            fileName1={fileName1!}
+            fileName2={fileName2}
+          />
         </TabsContent>
       </Tabs>
     </div>
   );
-};
-
-export default Analysis;
+}

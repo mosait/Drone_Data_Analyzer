@@ -12,23 +12,25 @@ export function ColumnFilter<TData>({ column }: ColumnFilterProps<TData>) {
   const columnFilterValue = column.getFilterValue()
 
   return (
-    <div className="flex items-center space-x-2">
-      <Input
-        type="text"
-        value={(columnFilterValue ?? '') as string}
-        onChange={(event) => column.setFilterValue(event.target.value)}
-        placeholder={`Filter ${column.id}...`}
-        className="h-8 w-[150px]"
-      />
-      {columnFilterValue ? (
-        <Button
-          variant="ghost"
-          onClick={() => column.setFilterValue('')}
-          className="h-8 px-2"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      ) : null}
+    <div className="flex items-center justify-center px-2 mb-2">
+      <div className="relative w-[130px]">
+        <Input
+          type="text"
+          value={(columnFilterValue ?? '') as string}
+          onChange={(event) => column.setFilterValue(event.target.value)}
+          placeholder={`Filter...`}
+          className="h-8 text-xs pr-6"
+        />
+        {columnFilterValue ? (
+          <Button
+            variant="ghost"
+            onClick={() => column.setFilterValue('')}
+            className="h-8 w-6 p-0 absolute right-0 top-0 hover:bg-transparent"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        ) : null}
+      </div>
     </div>
   )
 }

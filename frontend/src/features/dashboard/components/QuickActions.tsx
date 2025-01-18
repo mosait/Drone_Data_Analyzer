@@ -1,56 +1,70 @@
 // src/features/dashboard/components/QuickActions.tsx
-import { Button } from '../../../components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
-import { Upload, Play, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Upload, X } from 'lucide-react';
+import { useDataStore } from '@/store/useDataStore';
+import { Separator } from '@/components/ui/separator';
+import { ExportDialog } from '@/components/shared/ExportDialog';
 
 interface QuickActionsProps {
-  onImport: () => void;
-  onAnalyze: () => void;
-  onExport: () => void;
-  hasFiles: boolean;
-  hasAnalyzedFiles: boolean;
+  onUploadClick: () => void;
 }
 
-export const QuickActions = ({
-  onImport,
-  onAnalyze,
-  onExport,
-  hasFiles,
-  hasAnalyzedFiles
-}: QuickActionsProps) => {
+export const QuickActions = ({ onUploadClick }: QuickActionsProps) => {
+  const { fileSlots, removeFileFromSlot } = useDataStore();
+  const hasFiles = fileSlots.slot1 || fileSlots.slot2;
+
   return (
-    <Card>
+    <Card className="mb-6">
       <CardHeader>
         <CardTitle>Quick Actions</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-3 gap-4">
-          <Button 
-            variant="outline" 
-            onClick={onImport}
-            className="flex items-center gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Import
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onAnalyze}
-            disabled={!hasFiles}
-            className="flex items-center gap-2"
-          >
-            <Play className="h-4 w-4" />
-            Analyze
-          </Button>
-          <Button
-            variant="outline"
-            onClick={onExport}
-            disabled={!hasAnalyzedFiles}
-            className="flex items-center gap-2"
-          >
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
+      <CardContent className="pt-0">
+        <div className="min-h-[255px]">
+          <div className="space-y-4">
+            <Button
+              className="w-full flex items-center gap-2 justify-center h-11"
+              variant="outline"
+              onClick={onUploadClick}
+            >
+              <Upload className="h-5 w-5" />
+              Upload New File
+            </Button>
+            <ExportDialog disabled={!hasFiles} />
+          </div>
+
+          <div className="mt-8">
+            <Separator className="mb-4" />
+            <p className="text-sm font-medium mb-2">Manage Files</p>
+            {hasFiles ? (
+              <div className="space-y-2">
+                {fileSlots.slot1 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-between"
+                    onClick={() => removeFileFromSlot(1)}
+                  >
+                    <span className="truncate">Slot 1: {fileSlots.slot1.filename}</span>
+                    <X className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+                {fileSlots.slot2 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-between"
+                    onClick={() => removeFileFromSlot(2)}
+                  >
+                    <span className="truncate">Slot 2: {fileSlots.slot2.filename}</span>
+                    <X className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No files selected</p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

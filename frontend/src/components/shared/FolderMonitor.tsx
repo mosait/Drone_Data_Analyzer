@@ -31,8 +31,7 @@ export const FolderMonitor = ({ onFileFound }: FolderMonitorProps) => {
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<FileInfo[]>([]);
   const [isScanning, setIsScanning] = useState(false);
-  const [fullPath, setFullPath] = useState<string>('');
-  
+
   const [storedDirectory, setStoredDirectory] = useLocalStorage<StoredDirectoryInfo | null>(
     'monitoredDirectory',
     null
@@ -91,10 +90,6 @@ export const FolderMonitor = ({ onFileFound }: FolderMonitorProps) => {
 
               setDirectoryHandle(dirHandle);
               setWatchPath(storedDirectory.name);
-              
-              // Get fresh path
-              const path = await getDirectoryPath(dirHandle);
-              setFullPath(path);
               
               setIsWatching(true);
               await scanDirectory(dirHandle);
@@ -170,7 +165,6 @@ export const FolderMonitor = ({ onFileFound }: FolderMonitorProps) => {
       // Update state
       setDirectoryHandle(dirHandle);
       setWatchPath(dirHandle.name);
-      setFullPath(path);
       setError(null);
       setIsWatching(true);
       
@@ -219,7 +213,6 @@ export const FolderMonitor = ({ onFileFound }: FolderMonitorProps) => {
       setIsWatching(false);
       setDirectoryHandle(null);
       setWatchPath('');
-      setFullPath('');
       setFiles([]);
     }
   };

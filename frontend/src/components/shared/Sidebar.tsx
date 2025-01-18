@@ -11,18 +11,7 @@ import { ExportDialog } from './ExportDialog';
 
 const Sidebar = () => {
   const location = useLocation();
-  const { selectedFile, uploadFile } = useDataStore();
-
-  const handleFileUpload = async (file: File): Promise<void> => {
-    try {
-      await uploadFile(file);
-      // Make sure we wait for the upload to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
-    } catch (error) {
-      console.error('Upload error:', error);
-      throw error; // Propagate error to ImportDialog
-    }
-  };
+  const { fileSlots } = useDataStore();
 
   const navigation = [
     { 
@@ -44,6 +33,9 @@ const Sidebar = () => {
       description: 'Visualize and analyze data'
     }
   ];
+
+  // Determine if export should be disabled
+  const isExportDisabled = !fileSlots.slot1 && !fileSlots.slot2;
 
   return (
     <div className="w-64 bg-card fixed h-screen border-r border-border">
@@ -99,10 +91,9 @@ const Sidebar = () => {
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-border space-y-2">
-          <ImportDialog onFileUpload={handleFileUpload} />
+          <ImportDialog />
           <ExportDialog 
-            selectedFile={selectedFile}
-            disabled={!selectedFile}
+            disabled={isExportDisabled} 
           />
         </div>
       </div>

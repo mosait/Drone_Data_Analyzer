@@ -1,5 +1,42 @@
 # backend/app/api/v1/endpoints/files.py
-
+# This file implements FastAPI endpoints for managing file uploads, retrieving file details, and listing uploaded files.
+# The following functionalities are provided:
+#
+# 1. **File Upload Endpoint**:
+# - **POST `/upload`**:
+#   - Accepts a file (`UploadFile`) and performs the following operations:
+#     - Validates the file content using the `validate_file_content` function.
+#     - Generates a unique file ID and constructs a save path with a timestamped filename.
+#     - Saves the file in chunks (8KB at a time) to ensure efficient handling of large files.
+#     - Checks the saved file's existence and size to confirm successful saving.
+#     - Updates a file mapping (`file_mapping.json`) to track file metadata (e.g., ID, name, path, timestamp).
+#     - Starts a background task (`process_file`) to process the file asynchronously.
+#   - Returns a response containing the file ID, filename, and upload timestamp.
+#   - Handles errors such as invalid content, file saving issues, or unexpected exceptions.
+#
+# 2. **List Files Endpoint**:
+# - **GET `/`**:
+#   - Reads the `file_mapping.json` to retrieve metadata of all uploaded files.
+#   - Filters out files that are missing or empty.
+#   - Returns a sorted list (most recent first) of uploaded files, including their IDs, filenames, timestamps, and statuses.
+#   - Handles errors such as file mapping issues or unexpected exceptions.
+#
+# 3. **File Info Endpoint**:
+# - **GET `/{file_id}`**:
+#   - Retrieves metadata for a specific file based on its ID.
+#   - Verifies the file's existence and integrity.
+#   - Returns file details, including ID, filename, timestamp, and processing status.
+#   - Handles cases where the file is not found or unexpected exceptions occur.
+#
+# 4. **Utility Functions**:
+# - `get_file_mapping()`:
+#   - Reads the `file_mapping.json` to retrieve the current file mapping.
+#   - Creates an empty mapping if the file does not exist.
+#
+# - `save_file_mapping(mapping)`:
+#   - Writes the updated file mapping back to `file_mapping.json`.
+#
+# These endpoints enable file upload, tracking, and retrieval functionality, ensuring efficient and reliable handling of drone data files (CSV/JSON).
 import os
 import uuid
 import json

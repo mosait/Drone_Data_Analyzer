@@ -60,7 +60,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         window.localStorage.removeItem(key);
       } else {
         // Convert FileSystemDirectoryHandle to a serializable format
-        const serializedValue = JSON.stringify(valueToStore, (key, value) => {
+        const serializedValue = JSON.stringify(valueToStore, (_key, value) => {
           if (value && typeof value === 'object' && 'kind' in value) {
             // For FileSystemDirectoryHandle objects
             return {

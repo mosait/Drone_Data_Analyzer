@@ -1,4 +1,31 @@
 # backend/app/utils/file_handlers.py
+# This file provides utilities for handling and parsing uploaded files (CSV and JSON).
+# The following functionalities are implemented:
+#
+# 1. File Upload Handling:
+# - The `save_upload_file` function saves the uploaded file to a specified directory and returns the file path.
+# - It validates the file size against the maximum upload size defined in `settings.MAX_UPLOAD_SIZE`.
+# - It validates the file extension against the allowed extensions in `settings.ALLOWED_EXTENSIONS`.
+# - A unique filename is generated using a timestamp to prevent conflicts.
+# - The file content is saved asynchronously.
+#
+# 2. File Parsing:
+# - The `parse_file` function determines the file type (CSV or JSON) and calls the appropriate parser.
+# - Unsupported file types raise an HTTP 415 (Unsupported Media Type) exception.
+#
+# 3. CSV Parsing:
+# - The `parse_csv` function reads the CSV file and converts each row into a `DroneData` object.
+# - It validates and parses required columns: "timestamp", "latitude", "longitude", "altitude", and "radar_distance".
+# - It converts these values into appropriate types (e.g., `float` for numeric values, `datetime` for timestamps).
+# - Errors during parsing raise an HTTP 400 (Bad Request) exception with details.
+#
+# 4. JSON Parsing:
+# - The `parse_json` function reads the JSON file and converts each object into a `DroneData` object.
+# - It validates and parses required fields: "timestamp", "gps" (with "latitude", "longitude", "altitude"), and "radar" (with "distance").
+# - It converts these values into appropriate types.
+# - Errors during parsing raise an HTTP 400 (Bad Request) exception with details.
+#
+# This module integrates with the `DroneData`, `DroneDataList`, `GPSData`, and `RadarData` models for structured data handling.
 import pandas as pd
 import json
 from pathlib import Path
