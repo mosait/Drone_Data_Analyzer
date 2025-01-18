@@ -19,7 +19,6 @@ export default function Dashboard() {
     recentFiles, 
     loadRecentFiles,
     isLoading,
-    clearError,
     uploadProgress,
     addFileToSlot,
   } = useDataStore();

@@ -25,8 +25,6 @@ export default function Analysis() {
   const data2 = fileSlots.slot2 ? currentDataMap[fileSlots.slot2.id] : undefined;
   const fileName1 = fileSlots.slot1?.filename;
   const fileName2 = fileSlots.slot2?.filename;
-  const metrics1 = fileSlots.slot1 ? metricsMap[fileSlots.slot1.id]?.flightMetrics : undefined;
-  const metrics2 = fileSlots.slot2 ? metricsMap[fileSlots.slot2.id]?.flightMetrics : undefined;
 
   if (isLoading) {
     return (

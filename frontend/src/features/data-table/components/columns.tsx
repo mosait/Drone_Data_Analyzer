@@ -67,7 +67,7 @@ export const columns: ColumnDef<DroneData>[] = [
         #{row.index + 1}
       </div>
     ),
-    filterFn: (row, id, filterValue) => {
+    filterFn: (row, filterValue) => {
       // Add 1 to index for waypoint number
       const value = row.index + 1;
       return numericFilter(value, filterValue);
@@ -115,7 +115,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, id, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.gps?.latitude;
       if (value === undefined) return true;
       return numericFilter(value, filterValue);
@@ -143,7 +143,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, id, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.gps?.longitude;
       if (value === undefined) return true;
       return numericFilter(value, filterValue);
@@ -171,7 +171,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, id, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.gps?.altitude;
       if (value === undefined) return true;
       return numericFilter(value, filterValue);
@@ -199,7 +199,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, id, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.radar?.distance;
       if (value === undefined) return true;
       return numericFilter(value, filterValue);

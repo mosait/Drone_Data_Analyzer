@@ -30,7 +30,7 @@ import {
 } from "@tanstack/react-table";
 import { Search, X } from "lucide-react";
 import { DroneData } from "@/api/types";
-import { TableRow as ProcessedTableRow, processTableData } from './TableUtils';
+import { processTableData } from './TableUtils';
 
 interface AnalysisDataTableProps {
   data: DroneData[];
@@ -45,7 +45,6 @@ export function AnalysisDataTable({
   title, 
   className,
   initialSortColumn,
-  highlightedColumns = []
 }: AnalysisDataTableProps) {
   const [sorting, setSorting] = useState<SortingState>(() => 
     initialSortColumn ? [{ id: initialSortColumn, desc: false }] : []
@@ -54,12 +53,6 @@ export function AnalysisDataTable({
   const [globalFilter, setGlobalFilter] = useState("");
   
   const processedData = processTableData(data);
-
-  const getColumnStyle = (columnId: string) => {
-    return highlightedColumns.includes(columnId) 
-      ? "font-medium text-primary"
-      : undefined;
-  };
 
   const columns = [
     {

@@ -1,7 +1,6 @@
 // src/components/shared/MetricsCard.tsx
 import { Card, CardContent } from '@/components/ui/card';
 import { FlightMetrics } from '@/api/types';
-import { useDataStore } from '@/store/useDataStore';
 
 interface ComparisonInfo {
   difference: number;

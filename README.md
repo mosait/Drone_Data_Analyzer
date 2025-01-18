@@ -43,7 +43,7 @@ Windows  : .\venv\Scripts\activate
 Linux/Mac: source ./venv/bin/activate
 
 pip install -r requirements.txt
-python ./run_backend
+python ./run_backend.py
 ```
 
 In the second terminal, run the following commands to start the frontend server:
@@ -64,8 +64,8 @@ Currently the application only supports imports and exports as
 - CSV
 - JSON
 
-When importing data the files will be saved in `/uploads/` and can be used afterwards via Recent Files without the need of a second import.
-The folder `/uploads/` as well as the file `/uploads/file_mapping.json` will be created automatically if they do not exist.
+When importing data the files will be saved in `/backend/uploads/` and can be used afterwards via Recent Files without the need of a second import.
+The folder `/backend/uploads/` as well as the file `/backend/uploads/file_mapping.json` will be created automatically if they do not exist.
 
 #### CSV Structure
 
