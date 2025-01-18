@@ -29,7 +29,7 @@ Than navigate to `http://localhost:3000` to access the application.
 
 If you want to run the application without Docker, you need two terminals.
 
-In the first terminal, run the following command to start the backend server:
+In the first terminal, run the following commands to start the backend server:
 
 ```
 cd ./backend
@@ -42,7 +42,7 @@ pip install -r requirements.txt
 python ./run_backend
 ```
 
-In the second terminal, run the following command to start the frontend server:
+In the second terminal, run the following commands to start the frontend server:
 
 ```
 cd ./frontend
