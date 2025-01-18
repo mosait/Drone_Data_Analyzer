@@ -1,5 +1,7 @@
 <div align="center">
-    <img alt="Drone" height="200px" src="./frontend/public/drone.png">
+    <a href="https://github.com/mosait/Drone_Data_Analyzer" />
+        <img alt="Drone" height="200px" src="./frontend/public/drone.png">
+    </a>
 </div>
 
 # Drone Analytics
