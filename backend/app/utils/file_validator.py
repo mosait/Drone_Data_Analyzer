@@ -44,20 +44,22 @@ def validate_timestamp_format(timestamp: str) -> bool:
 
 async def validate_file_content(
     file, max_size: int = 10 * 1024 * 1024
-) -> Tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """
     Validate file content before saving.
     Returns: (is_valid, error_message)
     """
-    logger.debug(f"Starting validation for file: {file.filename}")
-
     try:
         # Read content
         content = await file.read()
         await file.seek(0)
 
+        # Check file size
         if len(content) > max_size:
-            return False, f"File size exceeds maximum allowed size of {max_size} bytes"
+            return (
+                False,
+                f"File size exceeds maximum allowed size of {max_size/1024/1024:.1f}MB",
+            )
 
         if len(content) == 0:
             return False, "File is empty"
@@ -65,7 +67,7 @@ async def validate_file_content(
         try:
             text_content = content.decode("utf-8")
         except UnicodeDecodeError:
-            return False, "File must be UTF-8 encoded"
+            return False, "File must be UTF-8 encoded. Please check the file encoding."
 
         # Validate based on file type
         file_extension = Path(file.filename).suffix.lower()
@@ -85,13 +87,23 @@ async def validate_file_content(
 
                 if not all(col in df.columns for col in required_columns):
                     missing = required_columns - set(df.columns)
-                    return False, f"Missing required columns: {missing}"
+                    return False, f"Missing required columns: {', '.join(missing)}"
 
                 # Validate timestamp format
-                if not all(
-                    validate_timestamp_format(str(ts)) for ts in df["timestamp"]
-                ):
-                    return False, "Timestamps must be in HH:MM:SS format"
+                invalid_timestamps = []
+                for idx, ts in enumerate(df["timestamp"], 1):
+                    try:
+                        datetime.strptime(str(ts), "%H:%M:%S")
+                    except ValueError:
+                        invalid_timestamps.append(idx)
+
+                if invalid_timestamps:
+                    rows = ", ".join(map(str, invalid_timestamps[:3]))
+                    suffix = " ..." if len(invalid_timestamps) > 3 else ""
+                    return (
+                        False,
+                        f"Invalid timestamp format in rows: {rows}{suffix}. Expected format: HH:MM:SS",
+                    )
 
                 # Validate numeric columns
                 numeric_columns = [
@@ -101,14 +113,24 @@ async def validate_file_content(
                     "radar_distance",
                 ]
                 for col in numeric_columns:
-                    if not pd.to_numeric(df[col], errors="coerce").notna().all():
-                        return False, f"Column {col} must contain only numeric values"
+                    non_numeric = pd.to_numeric(df[col], errors="coerce").isna()
+                    if non_numeric.any():
+                        bad_rows = df.index[non_numeric].tolist()[:3]
+                        rows = ", ".join(map(str, [i + 1 for i in bad_rows]))
+                        suffix = " ..." if len(bad_rows) > 3 else ""
+                        return (
+                            False,
+                            f"Non-numeric values in column '{col}' at rows: {rows}{suffix}",
+                        )
 
                 return True, None
 
-            except Exception as e:
-                logger.error(f"CSV validation error: {e}")
+            except pd.errors.EmptyDataError:
+                return False, "CSV file is empty"
+            except pd.errors.ParserError as e:
                 return False, f"Invalid CSV format: {str(e)}"
+            except Exception as e:
+                return False, f"Error processing CSV file: {str(e)}"
 
         elif file_extension == ".json":
             try:
@@ -117,40 +139,70 @@ async def validate_file_content(
                     data = [data]
 
                 if not isinstance(data, list):
-                    return False, "JSON must contain an array of objects"
+                    return False, "JSON must contain an array of drone data records"
 
                 # Validate each record
-                for item in data:
+                for idx, item in enumerate(data, 1):
                     # Check required fields
                     if not all(
                         field in item for field in ["timestamp", "gps", "radar"]
                     ):
-                        return False, "Missing required fields in JSON"
+                        return (
+                            False,
+                            f"Missing required fields in record {idx}. Each record must have 'timestamp', 'gps', and 'radar' fields.",
+                        )
 
                     # Validate timestamp format
-                    if not validate_timestamp_format(item["timestamp"]):
-                        return False, "Timestamps must be in HH:MM:SS format"
+                    try:
+                        datetime.strptime(str(item["timestamp"]), "%H:%M:%S")
+                    except ValueError:
+                        return (
+                            False,
+                            f"Invalid timestamp format in record {idx}. Expected format: HH:MM:SS",
+                        )
 
                     # Validate GPS data
                     gps = item.get("gps", {})
                     if not all(
                         field in gps for field in ["latitude", "longitude", "altitude"]
                     ):
-                        return False, "Missing required GPS fields"
+                        return (
+                            False,
+                            f"Missing GPS fields in record {idx}. GPS data must include 'latitude', 'longitude', and 'altitude'.",
+                        )
 
+                    # Validate radar data
                     if "distance" not in item.get("radar", {}):
-                        return False, "Missing radar distance"
+                        return (
+                            False,
+                            f"Missing radar distance in record {idx}. Radar data must include 'distance'.",
+                        )
+
+                    # Validate numeric values
+                    try:
+                        float(gps["latitude"])
+                        float(gps["longitude"])
+                        float(gps["altitude"])
+                        float(item["radar"]["distance"])
+                    except (ValueError, TypeError):
+                        return (
+                            False,
+                            f"Invalid numeric values in record {idx}. GPS and radar values must be numbers.",
+                        )
 
                 return True, None
 
             except json.JSONDecodeError as e:
-                return False, f"Invalid JSON format: {str(e)}"
+                line_info = f" near line {e.lineno}" if hasattr(e, "lineno") else ""
+                return False, f"Invalid JSON format{line_info}: {str(e)}"
 
         else:
-            return False, f"Unsupported file type: {file_extension}"
+            return (
+                False,
+                f"Unsupported file type: {file_extension}. Only .csv and .json files are supported.",
+            )
 
     except Exception as e:
-        logger.error(f"Validation error: {e}")
         return False, f"File validation failed: {str(e)}"
     finally:
         await file.seek(0)

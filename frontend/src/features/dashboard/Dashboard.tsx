@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Upload, FileType, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { FlightComparison } from './components/FlightComparison';
 import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
 import { FileUploadResponse } from '@/api/types';
+import { FileUploadError } from '@/components/shared/FileUploadError';
 import { QuickActions } from './components/QuickActions';
 
 export default function Dashboard() {
@@ -19,12 +19,11 @@ export default function Dashboard() {
     recentFiles, 
     loadRecentFiles,
     isLoading,
-    error,
     clearError,
     uploadProgress,
     addFileToSlot,
   } = useDataStore();
-
+  const [error, setError] = useState<string | null>(null);
   const [slotDialogOpen, setSlotDialogOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<FileUploadResponse | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -76,7 +75,11 @@ export default function Dashboard() {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Failed to upload file';
+        
+      setError(errorMessage);
     }
   };
 
@@ -118,9 +121,10 @@ export default function Dashboard() {
       />
 
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <FileUploadError 
+          error={error}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

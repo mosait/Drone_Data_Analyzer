@@ -5,7 +5,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader, AlertCircle } from 'lucide-react';
 import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import { DataTableComponent } from './components/DataTableComponent';
-import { MetricsCards } from './components/MetricsCards';
+import { MetricsCards } from '@/components/shared/MetricsCards';
+import { FlightMetrics } from '@/api/types';
 
 export default function DataTable() {
   const { currentDataMap, metricsMap, fileSlots, isLoading } = useDataStore();
@@ -57,9 +58,21 @@ export default function DataTable() {
 
     if (!data || !metrics) return null;
 
+    // Find other file's metrics, ensuring we handle the null case
+    const otherFileId = Object.values(fileSlots)
+      .find(file => file && file.id !== fileId)?.id;
+    
+    const otherMetrics = otherFileId && metricsMap[otherFileId]?.flightMetrics 
+      ? metricsMap[otherFileId].flightMetrics 
+      : undefined;
+
     return (
       <div className="space-y-4">
-        <MetricsCards metrics={metrics} />
+        <MetricsCards 
+          metrics={metrics}
+          otherMetrics={otherMetrics}
+          hasBothFiles={Boolean(fileSlots.slot1 && fileSlots.slot2)}
+        />
         <DataTableComponent 
           data={data} 
           title={fileName} 
@@ -89,7 +102,7 @@ export default function DataTable() {
       </div>
     );
   };
-
+  
   const hasBothFiles = Boolean(fileSlots.slot1 && fileSlots.slot2);
 
   return (
