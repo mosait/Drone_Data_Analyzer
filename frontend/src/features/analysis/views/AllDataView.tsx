@@ -1,5 +1,5 @@
 // src/features/analysis/views/AllDataView.tsx
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CombinedAltitudeChart } from '../components/charts/CombinedAltitudeChart';
 import { CombinedRadarChart } from '../components/charts/CombinedRadarChart';
 import { FlightMap } from '../components/map/FlightMap';
@@ -25,7 +25,7 @@ export function AllDataView({
   fileName1,
   fileName2,
 }: AllDataViewProps) {
-  // State for chart synchronization
+  const mapContainerRef = useRef<HTMLDivElement>(null);
   const [syncedChartState, setSyncedChartState] = useState<ChartSyncState>({
     activeIndex: null,
     mouseX: 0,
@@ -74,13 +74,19 @@ export function AllDataView({
         </ChartWrapper>
       </div>
 
-      {/* Map Section */}
-      <FlightMap 
-        data1={data1}
-        data2={data2}
-        fileName1={fileName1}
-        fileName2={fileName2}
-      />
+      {/* Map Section - Completely isolated */}
+      <div 
+        ref={mapContainerRef}
+        className="map-container"
+        style={{ position: 'relative', zIndex: 1 }}
+      >
+        <FlightMap 
+          data1={data1}
+          data2={data2}
+          fileName1={fileName1}
+          fileName2={fileName2}
+        />
+      </div>
     </div>
   );
 }
