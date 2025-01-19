@@ -16,6 +16,8 @@ export function GPSTrackView({
   fileName1,
   fileName2,
 }: GPSTrackViewProps) {
+  const hasBothFiles = Boolean(data1 && data2);
+
   return (
     <div className="space-y-6">
       {/* Map Section */}
@@ -27,15 +29,17 @@ export function GPSTrackView({
       />
 
       {/* Tables Section */}
-      <div className="grid grid-cols-2 gap-6">
-        <AnalysisDataTable 
-          data={data1}
-          title={fileName1}
-        />
-        {data2 && (
+      <div className={hasBothFiles ? "grid grid-cols-2 gap-6" : "w-full"}>
+        <div className={hasBothFiles ? "" : "w-full"}>
+          <AnalysisDataTable 
+            data={data1}
+            title={fileName1}
+          />
+        </div>
+        {data2 && fileName2 && (
           <AnalysisDataTable 
             data={data2}
-            title={fileName2 || ""}
+            title={fileName2}
           />
         )}
       </div>

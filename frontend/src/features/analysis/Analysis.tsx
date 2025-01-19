@@ -25,6 +25,8 @@ export default function Analysis() {
   const data2 = fileSlots.slot2 ? currentDataMap[fileSlots.slot2.id] : undefined;
   const fileName1 = fileSlots.slot1?.filename;
   const fileName2 = fileSlots.slot2?.filename;
+  const metrics1 = fileSlots.slot1 ? metricsMap[fileSlots.slot1.id]?.flightMetrics : undefined;
+  const metrics2 = fileSlots.slot2 ? metricsMap[fileSlots.slot2.id]?.flightMetrics : undefined;
 
   if (isLoading) {
     return (
@@ -84,6 +86,14 @@ export default function Analysis() {
     );
   };
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Force reflow when switching tabs
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 100);
+  };
+
   return (
     <div className="space-y-8 p-8 mb-24">
       {/* Metrics Section */}
@@ -107,7 +117,7 @@ export default function Analysis() {
         defaultValue="all" 
         className="space-y-4"
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={handleTabChange}
       >
         <div className="border-b">
           <TabsList className="w-full justify-start">
@@ -119,39 +129,50 @@ export default function Analysis() {
         </div>
 
         <TabsContent value="all" className="space-y-4 mt-4">
-          <AllDataView 
-            data1={data1!}
-            data2={data2}
-            fileName1={fileName1!}
-            fileName2={fileName2}
-          />
+          <div className="all-data-container isolate">
+            {data1 && (
+              <AllDataView 
+                data1={data1}
+                data2={data2}
+                fileName1={fileName1!}
+                fileName2={fileName2}
+                key={`all-data-${activeTab}`}
+              />
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="altitude" className="space-y-8 mt-4">
-          <AltitudeAnalysisView 
-            data1={data1!}
-            data2={data2}
-            fileName1={fileName1!}
-            fileName2={fileName2}
-          />
+          {data1 && (
+            <AltitudeAnalysisView 
+              data1={data1}
+              data2={data2}
+              fileName1={fileName1!}
+              fileName2={fileName2}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="radar" className="space-y-8 mt-4">
-          <RadarAnalysisView 
-            data1={data1!}
-            data2={data2}
-            fileName1={fileName1!}
-            fileName2={fileName2}
-          />
+          {data1 && (
+            <RadarAnalysisView 
+              data1={data1}
+              data2={data2}
+              fileName1={fileName1!}
+              fileName2={fileName2}
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="gps" className="space-y-8 mt-4">
-          <GPSTrackView 
-            data1={data1!}
-            data2={data2}
-            fileName1={fileName1!}
-            fileName2={fileName2}
-          />
+          {data1 && (
+            <GPSTrackView 
+              data1={data1}
+              data2={data2}
+              fileName1={fileName1!}
+              fileName2={fileName2}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>
