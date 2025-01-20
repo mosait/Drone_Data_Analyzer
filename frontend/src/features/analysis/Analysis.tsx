@@ -76,13 +76,11 @@ export default function Analysis() {
     if (!metrics) return null;
 
     return (
-      <div className="py-8">
         <MetricsCards 
           metrics={metrics}
           otherMetrics={otherMetrics}
           hasBothFiles={Boolean(fileSlots.slot1 && fileSlots.slot2)}
         />
-      </div>
     );
   };
 
@@ -95,7 +93,7 @@ export default function Analysis() {
   };
 
   return (
-    <div className="space-y-4 p-8 mb-24">
+    <div className="space-y-6 p-6">
       {/* Metrics Section */}
       <div className={`grid ${fileSlots.slot1 && fileSlots.slot2 ? 'grid-cols-2 gap-8' : 'grid-cols-1'}`}>
         {fileSlots.slot1 && (
