@@ -26,12 +26,6 @@ const parseNumberComparison = (value: string): { operator: string; number: numbe
   return { operator, number };
 };
 
-// Debug helper
-const debugFilter = (value: any, filterValue: string, columnId: string) => {
-  console.log(`Filtering ${columnId}:`, { value, filterValue });
-  return true;
-};
-
 // Improved numeric filter function
 const numericFilter = (value: number, filterValue: string): boolean => {
   if (!filterValue?.trim()) return true;
@@ -77,7 +71,7 @@ export const columns: ColumnDef<DroneData>[] = [
         #{row.index + 1}
       </div>
     ),
-    filterFn: (row, columnId, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.index + 1;
       return numericFilter(value, filterValue);
     },
@@ -128,7 +122,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, columnId, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.gps?.latitude;
       if (value === undefined) return false;
       return numericFilter(value, filterValue);
@@ -156,7 +150,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, columnId, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.gps?.longitude;
       if (value === undefined) return false;
       return numericFilter(value, filterValue);
@@ -184,7 +178,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, columnId, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.gps?.altitude;
       if (value === undefined) return false;
       return numericFilter(value, filterValue);
@@ -212,7 +206,7 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, columnId, filterValue) => {
+    filterFn: (row, filterValue) => {
       const value = row.original.radar?.distance;
       if (value === undefined) return false;
       return numericFilter(value, filterValue);
