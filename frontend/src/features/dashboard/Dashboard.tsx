@@ -2,9 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDataStore } from '@/store/useDataStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileType, Clock } from 'lucide-react';
+import { Upload, FileType } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 import { Loader } from 'lucide-react';
 import { FolderMonitor } from '@/components/shared/FolderMonitor';
 import { FlightComparison } from './components/FlightComparison';
@@ -12,11 +11,11 @@ import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
 import { FileUploadResponse } from '@/api/types';
 import { FileUploadError } from '@/components/shared/FileUploadError';
 import { QuickActions } from './components/QuickActions';
+import { RecentFiles } from './components/RecentFiles';
 
 export default function Dashboard() {
   const { 
     uploadFile, 
-    recentFiles, 
     loadRecentFiles,
     isLoading,
     uploadProgress,
@@ -33,7 +32,7 @@ export default function Dashboard() {
   }, []);
 
   const triggerFileInput = () => {
-    setError(null); // Clear error before opening file dialog
+    setError(null);
     fileInputRef.current?.click();
   };
 
@@ -41,7 +40,7 @@ export default function Dashboard() {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    setError(null); // Clear error before handling dropped file
+    setError(null);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
@@ -61,12 +60,11 @@ export default function Dashboard() {
 
   const handleFileUpload = async (file: File) => {
     try {
-      setError(null); // Clear any existing errors
+      setError(null);
       const response = await uploadFile(file);
       setUploadedFile(response);
       setSlotDialogOpen(true);
       
-      // Clear input for reuse
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -76,7 +74,6 @@ export default function Dashboard() {
         : 'Failed to upload file';
       setError(errorMessage);
       
-      // Clear input to allow re-uploading the same file
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -90,7 +87,7 @@ export default function Dashboard() {
         setSlotDialogOpen(false);
         setUploadedFile(null);
       } catch (error) {
-        console.log('Failed to add file to slot')
+        console.error('Failed to add file to slot')
       }
     }
   };
@@ -196,48 +193,8 @@ export default function Dashboard() {
 
         {/* Right Column */}
         <div>
-        <QuickActions onUploadClick={triggerFileInput} />
-
-          {/* Recent Files */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Recent Files
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentFiles && recentFiles.length > 0 ? (
-                <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                  {recentFiles.map((file) => (
-                    <Button
-                      key={file.id}
-                      variant="ghost"
-                      className="w-full flex items-center justify-between p-2 h-auto"
-                      onClick={() => {
-                        setUploadedFile(file);
-                        setSlotDialogOpen(true);
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FileType className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium truncate">
-                          {file.filename}
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(file.timestamp).toLocaleDateString()}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-32">
-                  <p className="text-sm text-muted-foreground">No recent files</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <QuickActions onUploadClick={triggerFileInput} />
+          <RecentFiles />
         </div>
       </div>
 

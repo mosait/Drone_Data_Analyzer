@@ -214,3 +214,60 @@ async def get_file_info(file_id: str):
             status_code=500,
             detail=f"An error occurred while getting file info: {str(e)}",
         )
+
+
+@router.delete("/{file_id}")
+async def delete_file(file_id: str):
+    """Delete a file and all its associated data."""
+    logger.info(f"Deleting file with ID: {file_id}")
+    try:
+        mapping = get_file_mapping()
+        if file_id not in mapping:
+            logger.warning(f"File ID not found in mapping: {file_id}")
+            raise HTTPException(status_code=404, detail="File not found")
+
+        file_info = mapping[file_id]
+        file_path = Path(file_info["path"])
+        base_path = file_path.parent
+        base_name = file_path.stem
+
+        # List of patterns to clean up
+        cleanup_patterns = [
+            file_path,  # Original file
+            base_path / f"{base_name}_processed.json",  # Processed data
+            base_path / f"{base_name}_analysis.json",  # Any analysis results
+            base_path / f"{base_name}_metrics.json",  # Any metrics data
+        ]
+
+        # Delete all related files
+        deleted_files = []
+        for path in cleanup_patterns:
+            try:
+                if path.exists():
+                    path.unlink()
+                    deleted_files.append(path.name)
+                    logger.debug(f"Deleted file: {path}")
+            except Exception as e:
+                logger.error(f"Error deleting file {path}: {e}")
+
+        # Remove from mapping
+        del mapping[file_id]
+        save_file_mapping(mapping)
+
+        logger.info(
+            f"Successfully deleted file {file_id} and {len(deleted_files)} related files"
+        )
+        return {
+            "success": True,
+            "message": "File deleted successfully",
+            "deleted_files": deleted_files,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error during file deletion: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while deleting the file: {str(e)}",
+        )

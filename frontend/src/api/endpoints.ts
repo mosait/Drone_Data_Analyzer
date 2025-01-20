@@ -21,6 +21,10 @@ export const api = {
     getAll: async (): Promise<FileUploadResponse[]> => {
       const { data } = await apiClient.get<FileUploadResponse[]>('/api/v1/files');
       return data;
+    },
+
+    delete: async (fileId: string): Promise<void> => {
+      await apiClient.delete(`/api/v1/files/${fileId}`);
     }
   },
 
