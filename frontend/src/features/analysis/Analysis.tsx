@@ -128,7 +128,7 @@ export default function Analysis() {
 
         <TabsContent value="all" className="space-y-4 mt-4">
           <div className="all-data-container isolate">
-            {data1 && (
+            {data1 ? (
               <AllDataView 
                 data1={data1}
                 data2={data2}
@@ -136,41 +136,74 @@ export default function Analysis() {
                 fileName2={fileName2}
                 key={`all-data-${activeTab}`}
               />
-            )}
+              ) : data2 && (
+                <AllDataView 
+                  data1={data2}
+                  data2={undefined}
+                  fileName1={fileName2!}
+                  fileName2={undefined}
+                  key={`all-data-${activeTab}`}
+                />
+              )
+            }
           </div>
         </TabsContent>
 
         <TabsContent value="altitude" className="space-y-8 mt-4">
-          {data1 && (
+          {data1 ? (
             <AltitudeAnalysisView 
               data1={data1}
               data2={data2}
               fileName1={fileName1!}
               fileName2={fileName2}
-            />
-          )}
+              />
+            ) : data2 && (
+              <AltitudeAnalysisView 
+                data1={data2}
+                data2={undefined}
+                fileName1={fileName2!}
+                fileName2={undefined}
+              />
+            )
+          }
         </TabsContent>
 
         <TabsContent value="radar" className="space-y-8 mt-4">
-          {data1 && (
+          {data1 ? (
             <RadarAnalysisView 
               data1={data1}
               data2={data2}
               fileName1={fileName1!}
               fileName2={fileName2}
-            />
-          )}
+              />
+            ) : data2 && (
+              <RadarAnalysisView 
+                data1={data2}
+                data2={undefined}
+                fileName1={fileName2!}
+                fileName2={undefined}
+              />
+            )
+          }
         </TabsContent>
 
         <TabsContent value="gps" className="space-y-8 mt-4">
-          {data1 && (
+          {data1 ? (
             <GPSTrackView 
               data1={data1}
               data2={data2}
               fileName1={fileName1!}
               fileName2={fileName2}
-            />
-          )}
+              />
+            ) : data2 && (
+              <GPSTrackView 
+                data1={data2}
+                data2={undefined}
+                fileName1={fileName2!}
+                fileName2={undefined}
+              />
+          )
+        }
         </TabsContent>
       </Tabs>
     </div>
