@@ -3,12 +3,10 @@ import { useState, useEffect, useRef } from 'react';
 import { CombinedAltitudeChart } from '../components/charts/CombinedAltitudeChart';
 import { CombinedRadarChart } from '../components/charts/CombinedRadarChart';
 import { FlightMap } from '../components/map/FlightMap';
+import { VisibilityControls } from '@/components/shared/VisibilityControls';
 import { DroneData } from '@/api/types';
 import { ChartWrapper } from '../components/charts/ChartWrapper';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Layers } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface ChartSyncState {
   activeIndex: number | null;
@@ -90,52 +88,13 @@ export function AllDataView({
 
   return (
     <div className="space-y-6">
-      {/* Layer Controls */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Layers className="h-5 w-5" />
-            Visible Layers
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-8">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id={`visibility-${fileName1}`}
-                checked={fileVisibility[fileName1]}
-                onCheckedChange={() => handleVisibilityChange(fileName1)}
-                className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-              />
-              <Label 
-                htmlFor={`visibility-${fileName1}`}
-                className="text-base font-medium flex items-center gap-2"
-              >
-                {fileName1}
-                <div className="w-3 h-3 rounded-full bg-purple-600" />
-              </Label>
-            </div>
-
-            {fileName2 && (
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id={`visibility-${fileName2}`}
-                  checked={fileVisibility[fileName2]}
-                  onCheckedChange={() => handleVisibilityChange(fileName2)}
-                  className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
-                />
-                <Label 
-                  htmlFor={`visibility-${fileName2}`}
-                  className="text-base font-medium flex items-center gap-2"
-                >
-                  {fileName2}
-                  <div className="w-3 h-3 rounded-full bg-orange-500" />
-                </Label>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Visibility Controls */}
+      <VisibilityControls
+        fileName1={fileName1}
+        fileName2={fileName2}
+        visibility={fileVisibility}
+        onVisibilityChange={handleVisibilityChange}
+      />
 
       {/* Charts Section */}
       {(visibleData1.length > 0 || (visibleData2 && visibleData2.length > 0)) ? (
