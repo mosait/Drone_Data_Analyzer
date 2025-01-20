@@ -13,15 +13,17 @@ type ThemeProviderState = {
   setTheme: (theme: Theme) => void;
 };
 
-const ThemeProviderContext = createContext<ThemeProviderState | undefined>(
-  undefined
-);
+const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined);
 
 export function ThemeProvider({
   children,
   defaultTheme = "light",
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [theme, setTheme] = useState<Theme>(() => {
+    // Check for saved theme in localStorage
+    const savedTheme = localStorage.getItem("theme") as Theme | null;
+    return savedTheme || defaultTheme;
+  });
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -36,6 +38,9 @@ export function ThemeProvider({
     } else {
       root.classList.add(theme);
     }
+
+    // Save the selected theme to localStorage
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   return (
@@ -48,8 +53,9 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
-  if (context === undefined)
+  if (context === undefined) {
     throw new Error("useTheme must be used within a ThemeProvider");
+  }
 
   return context;
 };
