@@ -37,7 +37,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   
   return (
     <div className="bg-background border rounded-lg p-3 shadow-lg">
-      <p className="text-sm font-medium mb-1">Time: {label}min</p>
+      <p className="text-sm font-medium mb-1">Data Point: {label}</p>
       {payload.map((entry: any, index: number) => {
         if (!entry || entry.value === undefined) return null;
         return (
@@ -156,7 +156,7 @@ export function CombinedAltitudeChart({
               tickLine={false}
               axisLine={false}
               label={{ 
-                value: 'Time (min)', 
+                value: 'Data Point', 
                 position: 'bottom',
                 offset: 0,
                 style: { fontSize: 12 }
