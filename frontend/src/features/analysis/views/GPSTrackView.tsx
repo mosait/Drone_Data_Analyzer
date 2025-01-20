@@ -43,7 +43,7 @@ export function GPSTrackView({
   const [isTablesSynced, setIsTablesSynced] = useState(false);
 
   // Handler for sync state changes for both tables
-  const handleSyncChange = useCallback((isSynced: boolean, state: SharedTableState, table: 'table1' | 'table2') => {
+  const handleSyncChange = useCallback((isSynced: boolean, state: SharedTableState, _table: 'table1' | 'table2') => {
     setIsTablesSynced(isSynced);
     if (isSynced) {
       setSyncedState({
