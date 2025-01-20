@@ -23,11 +23,15 @@ Using Docker, run the following command in the root directory of the project:
 
 ```
 docker-compose -f ./docker/docker-compose.yml up --build
+
+OR If it was already build you can start the application with the following command:
+
+docker-compose -f ./docker/docker-compose.yml up
 ```
 
 This will build the Docker image and start the containers for the frontend and backend services.
 The backend runs on `http://localhost:8000/`.
-Than navigate to `http://localhost:3000` to access the application.
+Navigate to `http://localhost:3000` to access the application.
 
 #### No Docker
 
@@ -55,7 +59,7 @@ npm run dev
 ```
 
 The backend runs on `http://localhost:8000/`.
-Then navigate to `http://localhost:5173/` to access the application.
+Navigate to `http://localhost:5173/` to access the application.
 
 ## Data Formats
 
