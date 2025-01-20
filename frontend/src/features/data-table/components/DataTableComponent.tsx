@@ -46,6 +46,8 @@ interface DataTableComponentProps {
   onSortingChange?: OnChangeFn<SortingState>;
   showFilters?: boolean;
   onShowFiltersChange?: (show: boolean) => void;
+  onExport?: (format: 'csv' | 'json') => Promise<void>;  // Added this
+  isExporting?: boolean;  // Added this
 }
 
 export function DataTableComponent({ 
