@@ -26,13 +26,18 @@ const parseNumberComparison = (value: string): { operator: string; number: numbe
   return { operator, number };
 };
 
+// Debug helper
+const debugFilter = (value: any, filterValue: string, columnId: string) => {
+  console.log(`Filtering ${columnId}:`, { value, filterValue });
+  return true;
+};
+
 // Improved numeric filter function
 const numericFilter = (value: number, filterValue: string): boolean => {
-  // Early return if filter is empty
-  if (!filterValue.trim()) return true;
+  if (!filterValue?.trim()) return true;
 
   const comparison = parseNumberComparison(filterValue);
-  if (!comparison) return false; // Invalid filter format
+  if (!comparison) return false;
 
   const { operator, number } = comparison;
 
@@ -42,8 +47,13 @@ const numericFilter = (value: number, filterValue: string): boolean => {
     case '<': return value < number;
     case '>': return value > number;
     case '=': return value === number;
-    default: return value === number; // Default to equality
+    default: return value === number;
   }
+};
+
+// String filter function
+const stringFilter = (value: string, filterValue: string): boolean => {
+  return value.toLowerCase().includes(filterValue.toLowerCase());
 };
 
 export const columns: ColumnDef<DroneData>[] = [
@@ -67,8 +77,7 @@ export const columns: ColumnDef<DroneData>[] = [
         #{row.index + 1}
       </div>
     ),
-    filterFn: (row, filterValue) => {
-      // Add 1 to index for waypoint number
+    filterFn: (row, columnId, filterValue) => {
       const value = row.index + 1;
       return numericFilter(value, filterValue);
     },
@@ -92,6 +101,10 @@ export const columns: ColumnDef<DroneData>[] = [
         {row.getValue("timestamp")}
       </div>
     ),
+    filterFn: (row, columnId, filterValue) => {
+      const value = row.getValue(columnId) as string;
+      return stringFilter(value, filterValue);
+    },
   },
   {
     accessorKey: "gps.latitude",
@@ -115,9 +128,9 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, filterValue) => {
+    filterFn: (row, columnId, filterValue) => {
       const value = row.original.gps?.latitude;
-      if (value === undefined) return true;
+      if (value === undefined) return false;
       return numericFilter(value, filterValue);
     },
   },
@@ -143,9 +156,9 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, filterValue) => {
+    filterFn: (row, columnId, filterValue) => {
       const value = row.original.gps?.longitude;
-      if (value === undefined) return true;
+      if (value === undefined) return false;
       return numericFilter(value, filterValue);
     },
   },
@@ -171,9 +184,9 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, filterValue) => {
+    filterFn: (row, columnId, filterValue) => {
       const value = row.original.gps?.altitude;
-      if (value === undefined) return true;
+      if (value === undefined) return false;
       return numericFilter(value, filterValue);
     },
   },
@@ -199,9 +212,9 @@ export const columns: ColumnDef<DroneData>[] = [
         </div>
       );
     },
-    filterFn: (row, filterValue) => {
+    filterFn: (row, columnId, filterValue) => {
       const value = row.original.radar?.distance;
-      if (value === undefined) return true;
+      if (value === undefined) return false;
       return numericFilter(value, filterValue);
     },
   },

@@ -150,6 +150,7 @@ export function DataTableComponent({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    enableFilters: true,
     onSortingChange: handleSortingChange,
     onColumnFiltersChange: handleColumnFiltersChange,
     onGlobalFilterChange: handleGlobalFilterChange,
@@ -162,6 +163,10 @@ export function DataTableComponent({
         pageIndex,
       },
     },
+    // Debug mode to help us see what's happening
+    debugTable: true,
+    debugHeaders: true,
+    debugColumns: true,
     onPaginationChange: (updater) => {
       if (typeof updater === 'function') {
         const newState = updater({
