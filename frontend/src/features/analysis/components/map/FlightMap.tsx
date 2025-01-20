@@ -16,8 +16,8 @@ interface FlightMapProps {
 }
 
 export function FlightMap({ 
-  data1, 
-  data2, 
+  data1 = [], 
+  data2 = [], 
   fileName1, 
   fileName2 
 }: FlightMapProps) {
@@ -25,7 +25,6 @@ export function FlightMap({
   const defaultZoom = 15;
 
   useEffect(() => {
-    // Force a resize event after mount to ensure map renders correctly
     if (mapRef.current) {
       setTimeout(() => {
         mapRef.current?.invalidateSize();
@@ -33,17 +32,23 @@ export function FlightMap({
     }
   }, []);
 
-
-  // Calculate paths and centers
   const mapData = useMemo(() => {
-    const points1 = data1.map(point => [point.gps.latitude, point.gps.longitude] as [number, number]);
-    const points2 = data2?.map(point => [point.gps.latitude, point.gps.longitude] as [number, number]);
+    const points1 = data1.length > 0 
+      ? data1.map(point => [point.gps.latitude, point.gps.longitude] as [number, number])
+      : [];
+      
+    const points2 = data2?.length > 0 
+      ? data2.map(point => [point.gps.latitude, point.gps.longitude] as [number, number])
+      : [];
 
     const allPoints = [...points1, ...(points2 || [])];
-    const center = allPoints.reduce(
-      (acc, [lat, lng]) => [acc[0] + lat / allPoints.length, acc[1] + lng / allPoints.length],
-      [0, 0]
-    ) as [number, number];
+    
+    const center = allPoints.length > 0 
+      ? allPoints.reduce(
+          (acc, [lat, lng]) => [acc[0] + lat / allPoints.length, acc[1] + lng / allPoints.length],
+          [0, 0]
+        ) as [number, number]
+      : [48.7758, 9.1829] as [number, number]; // Default to Stuttgart coordinates
 
     return {
       path1: points1,
@@ -51,8 +56,8 @@ export function FlightMap({
       center,
       start1: points1[0],
       end1: points1[points1.length - 1],
-      start2: points2?.[0],
-      end2: points2?.[points2.length - 1],
+      start2: points2?.length ? points2[0] : undefined,
+      end2: points2?.length ? points2[points2.length - 1] : undefined,
     };
   }, [data1, data2]);
 
@@ -64,23 +69,24 @@ export function FlightMap({
   };
 
   const centerOnPath1 = () => {
-    fitBounds(mapData.path1);
+    if (mapData.path1.length > 0) {
+      fitBounds(mapData.path1);
+    }
   };
 
   const centerOnPath2 = () => {
-    if (mapData.path2) {
+    if (mapData.path2?.length > 0) {
       fitBounds(mapData.path2);
     }
   };
 
   const fitAllPaths = () => {
-    if (mapRef.current) {
-      const allPoints = [...mapData.path1, ...(mapData.path2 || [])];
+    const allPoints = [...mapData.path1, ...(mapData.path2 || [])];
+    if (allPoints.length > 0) {
       fitBounds(allPoints);
     }
   };
 
-  // Custom icons
   const startIcon = L.divIcon({
     className: 'custom-div-icon',
     html: `
@@ -125,23 +131,27 @@ export function FlightMap({
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>GPS Flight Track</CardTitle>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={fitAllPaths}
-          >
-            <Maximize2 className="h-4 w-4 mr-2" />
-            Fit All
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={centerOnPath1}
-          >
-            <MapPin className="h-4 w-4 mr-2" />
-            {fileName1}
-          </Button>
-          {fileName2 && (
+          {(mapData.path1.length > 0 || mapData.path2?.length > 0) && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fitAllPaths}
+            >
+              <Maximize2 className="h-4 w-4 mr-2" />
+              Fit All
+            </Button>
+          )}
+          {mapData.path1.length > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={centerOnPath1}
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              {fileName1}
+            </Button>
+          )}
+          {mapData.path2?.length > 0 && (
             <Button 
               variant="outline" 
               size="sm"
@@ -155,130 +165,135 @@ export function FlightMap({
       </CardHeader>
       <CardContent className="h-[800px]">
         <div className="h-full w-full rounded-lg border overflow-hidden">
-          <MapContainer
-            center={mapData.center}
-            zoom={defaultZoom}
-            ref={mapRef}
+        <MapContainer
+          center={mapData.center}
+          zoom={defaultZoom}
+          ref={mapRef}
             className="h-full w-full"
-            zoomControl={false}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <ZoomControl position="topright" />
-            
-            {/* First flight path */}
-            <Polyline
-              positions={mapData.path1}
-              color="#A855F7"
-              weight={3}
-              opacity={0.8}
-            />
+          zoomControl={false}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <ZoomControl position="topright" />
+          
+          {/* First flight path */}
+          {mapData.path1.length > 0 && (
+            <>
+              <Polyline
+                positions={mapData.path1}
+                color="#A855F7"
+                weight={3}
+                opacity={0.8}
+              />
 
-            {/* First flight path points (including start and end) */}
-            {data1.map((point, idx) => (
-              <Marker
-                key={`p1-point-${idx}`}
-                position={[point.gps.latitude, point.gps.longitude]}
-                icon={pointIcon1}
-              >
-                <Popup>
-                  <div className="p-3 min-w-[200px]">
-                    <h3 className="font-bold text-sm mb-2 flex items-center">
-                      <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#A855F7' }}></span>
-                      Point {idx + 1}
-                    </h3>
-                    <div className="space-y-1 text-sm">
-                      <p>Time: {point.timestamp}</p>
-                      <p>Altitude: {point.gps.altitude.toFixed(1)}m</p>
-                      <p>Distance: {point.radar.distance.toFixed(1)}m</p>
-                      <p>Lat: {point.gps.latitude.toFixed(6)}°</p>
-                      <p>Lon: {point.gps.longitude.toFixed(6)}°</p>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-
-            {/* Start and End markers for first path */}
-            <Marker position={mapData.start1} icon={startIcon}>
-              <Popup>
-                <div className="p-3 min-w-[200px]">
-                  <h3 className="font-bold text-sm mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span>
-                    Start 1
-                  </h3>
-                  <div className="space-y-1 text-sm">
-                    <p>Time: {data1[0].timestamp}</p>
-                    <p>Altitude: {data1[0].gps.altitude.toFixed(1)}m</p>
-                    <p>Distance: {data1[0].radar.distance.toFixed(1)}m</p>
-                    <p>Lat: {data1[0].gps.latitude.toFixed(6)}°</p>
-                    <p>Lon: {data1[0].gps.longitude.toFixed(6)}°</p>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-            <Marker position={mapData.end1} icon={endIcon}>
-              <Popup>
-                <div className="p-3 min-w-[200px]">
-                  <h3 className="font-bold text-sm mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-                    End {data1.length}
-                  </h3>
-                  <div className="space-y-1 text-sm">
-                    <p>Time: {data1[data1.length - 1].timestamp}</p>
-                    <p>Altitude: {data1[data1.length - 1].gps.altitude.toFixed(1)}m</p>
-                    <p>Distance: {data1[data1.length - 1].radar.distance.toFixed(1)}m</p>
-                    <p>Lat: {data1[data1.length - 1].gps.latitude.toFixed(6)}°</p>
-                    <p>Lon: {data1[data1.length - 1].gps.longitude.toFixed(6)}°</p>
-                  </div>
-                </div>
-              </Popup>
-            </Marker>
-
-            {/* Second flight path if available */}
-            {mapData.path2 && data2 && (
-              <>
-                <Polyline
-                  positions={mapData.path2}
-                  color="#F97316"
-                  weight={3}
-                  opacity={0.8}
-                />
-
-                {/* Second flight path points (including start and end) */}
-                {data2.map((point, idx) => (
-                  <Marker
-                    key={`p2-point-${idx}`}
-                    position={[point.gps.latitude, point.gps.longitude]}
-                    icon={pointIcon2}
-                  >
-                    <Popup>
-                      <div className="p-3 min-w-[200px]">
-                        <h3 className="font-bold text-sm mb-2 flex items-center">
-                          <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#F97316' }}></span>
-                          Point {idx + 1}
-                        </h3>
-                        <div className="space-y-1 text-sm">
-                          <p>Time: {point.timestamp}</p>
-                          <p>Altitude: {point.gps.altitude.toFixed(1)}m</p>
-                          <p>Distance: {point.radar.distance.toFixed(1)}m</p>
-                          <p>Lat: {point.gps.latitude.toFixed(6)}°</p>
-                          <p>Lon: {point.gps.longitude.toFixed(6)}°</p>
-                        </div>
+              {data1.map((point, idx) => (
+                <Marker
+                  key={`p1-point-${idx}`}
+                  position={[point.gps.latitude, point.gps.longitude]}
+                  icon={pointIcon1}
+                >
+                  <Popup>
+                    <div className="p-3 min-w-[200px]">
+                      <h3 className="font-bold text-sm mb-2 flex items-center">
+                        <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#A855F7' }}></span>
+                        Point {idx + 1}
+                      </h3>
+                      <div className="space-y-1 text-sm">
+                        <p>Time: {point.timestamp}</p>
+                        <p>Altitude: {point.gps.altitude.toFixed(1)}m</p>
+                        <p>Distance: {point.radar.distance.toFixed(1)}m</p>
+                        <p>Lat: {point.gps.latitude.toFixed(6)}°</p>
+                        <p>Lon: {point.gps.longitude.toFixed(6)}°</p>
                       </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
 
-                {/* Start and End markers for second path */}
-                <Marker position={mapData.start2!} icon={startIcon}>
+              {mapData.start1 && (
+                <Marker position={mapData.start1} icon={startIcon}>
                   <Popup>
                     <div className="p-3 min-w-[200px]">
                       <h3 className="font-bold text-sm mb-2 flex items-center">
                         <span className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span>
                         Start 1
+                      </h3>
+                      <div className="space-y-1 text-sm">
+                        <p>Time: {data1[0].timestamp}</p>
+                        <p>Altitude: {data1[0].gps.altitude.toFixed(1)}m</p>
+                        <p>Distance: {data1[0].radar.distance.toFixed(1)}m</p>
+                        <p>Lat: {data1[0].gps.latitude.toFixed(6)}°</p>
+                        <p>Lon: {data1[0].gps.longitude.toFixed(6)}°</p>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+              {mapData.end1 && (
+                <Marker position={mapData.end1} icon={endIcon}>
+                  <Popup>
+                    <div className="p-3 min-w-[200px]">
+                      <h3 className="font-bold text-sm mb-2 flex items-center">
+                        <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                        End {data1.length}
+                      </h3>
+                      <div className="space-y-1 text-sm">
+                        <p>Time: {data1[data1.length - 1].timestamp}</p>
+                        <p>Altitude: {data1[data1.length - 1].gps.altitude.toFixed(1)}m</p>
+                        <p>Distance: {data1[data1.length - 1].radar.distance.toFixed(1)}m</p>
+                        <p>Lat: {data1[data1.length - 1].gps.latitude.toFixed(6)}°</p>
+                        <p>Lon: {data1[data1.length - 1].gps.longitude.toFixed(6)}°</p>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              )}
+            </>
+          )}
+
+          {/* Second flight path if available */}
+          {data2 && mapData.path2?.length > 0 && (
+            <>
+              <Polyline
+                positions={mapData.path2}
+                color="#F97316"
+                weight={3}
+                opacity={0.8}
+              />
+
+              {data2.map((point, idx) => (
+                <Marker
+                  key={`p2-point-${idx}`}
+                  position={[point.gps.latitude, point.gps.longitude]}
+                  icon={pointIcon2}
+                >
+                  <Popup>
+                    <div className="p-3 min-w-[200px]">
+                      <h3 className="font-bold text-sm mb-2 flex items-center">
+                        <span className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#F97316' }}></span>
+                        Point {idx + 1}
+                      </h3>
+                      <div className="space-y-1 text-sm">
+                        <p>Time: {point.timestamp}</p>
+                        <p>Altitude: {point.gps.altitude.toFixed(1)}m</p>
+                        <p>Distance: {point.radar.distance.toFixed(1)}m</p>
+                        <p>Lat: {point.gps.latitude.toFixed(6)}°</p>
+                        <p>Lon: {point.gps.longitude.toFixed(6)}°</p>
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+
+              {mapData.start2 && (
+                <Marker position={mapData.start2} icon={startIcon}>
+                  <Popup>
+                    <div className="p-3 min-w-[200px]">
+                      <h3 className="font-bold text-sm mb-2 flex items-center">
+                        <span className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></span>
+                        Start 2
                       </h3>
                       <div className="space-y-1 text-sm">
                         <p>Time: {data2[0].timestamp}</p>
@@ -290,7 +305,9 @@ export function FlightMap({
                     </div>
                   </Popup>
                 </Marker>
-                <Marker position={mapData.end2!} icon={endIcon}>
+              )}
+              {mapData.end2 && data2.length > 0 && (
+                <Marker position={mapData.end2} icon={endIcon}>
                   <Popup>
                     <div className="p-3 min-w-[200px]">
                       <h3 className="font-bold text-sm mb-2 flex items-center">
@@ -303,14 +320,16 @@ export function FlightMap({
                         <p>Distance: {data2[data2.length - 1].radar.distance.toFixed(1)}m</p>
                         <p>Lat: {data2[data2.length - 1].gps.latitude.toFixed(6)}°</p>
                         <p>Lon: {data2[data2.length - 1].gps.longitude.toFixed(6)}°</p>
+                        <p>Lon: {data2[data2.length - 1].gps.longitude.toFixed(6)}°</p>
                       </div>
                     </div>
                   </Popup>
                 </Marker>
-              </>
-            )}
-          </MapContainer>
-        </div>
+              )}
+            </>
+          )}
+        </MapContainer>
+      </div>
       </CardContent>
     </Card>
   );

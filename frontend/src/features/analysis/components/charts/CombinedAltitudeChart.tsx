@@ -38,53 +38,75 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return (
     <div className="bg-background border rounded-lg p-3 shadow-lg">
       <p className="text-sm font-medium mb-1">Time: {label}s</p>
-      {payload.map((entry: any, index: number) => (
-        <p 
-          key={index} 
-          className="text-sm" 
-          style={{ color: entry.stroke }}
-        >
-          {entry.name}: {entry.value.toFixed(1)}m
-        </p>
-      ))}
+      {payload.map((entry: any, index: number) => {
+        if (!entry || entry.value === undefined) return null;
+        return (
+          <p 
+            key={index} 
+            className="text-sm" 
+            style={{ color: entry.stroke }}
+          >
+            {entry.name}: {entry.value.toFixed(1)}m
+          </p>
+        );
+      })}
     </div>
   );
 };
 
 export function CombinedAltitudeChart({ 
-  data1, 
-  data2, 
+  data1 = [], 
+  data2 = [], 
   fileName1, 
   fileName2,
   syncHover 
 }: CombinedChartProps) {
   const chartData = useMemo(() => {
-    const maxLength = Math.max(data1.length, data2?.length || 0);
-    const combinedData = [];
-
-    for (let i = 0; i < maxLength; i++) {
-      const point: any = {
-        time: i,
-        altitude1: data1[i]?.gps.altitude,
-        altitude2: data2?.[i]?.gps.altitude,
+    // Early exit if no data is available
+    if (!data1.length && !data2.length) {
+      return {
+        data: [],
+        averages: { avg1: undefined, avg2: undefined },
+        maxLength: 0
       };
-      combinedData.push(point);
     }
 
-    // Calculate averages
-    const avg1 = data1.reduce((sum, d) => sum + d.gps.altitude, 0) / data1.length;
-    const avg2 = data2 
-      ? data2.reduce((sum, d) => sum + d.gps.altitude, 0) / data2.length
+    const maxLength = Math.max(data1.length, data2.length);
+    const combinedData = Array.from({ length: maxLength }, (_, i) => ({
+      time: i,
+      altitude1: data1[i]?.gps?.altitude,
+      altitude2: data2[i]?.gps?.altitude
+    }));
+
+    // Calculate averages only if data exists
+    const avg1 = data1.length > 0
+      ? data1.reduce((sum, d) => sum + (d.gps?.altitude || 0), 0) / data1.length
+      : undefined;
+    
+    const avg2 = data2.length > 0
+      ? data2.reduce((sum, d) => sum + (d.gps?.altitude || 0), 0) / data2.length
       : undefined;
 
     return {
       data: combinedData,
-      averages: {
-        avg1,
-        avg2
-      }
+      averages: { avg1, avg2 },
+      maxLength
     };
   }, [data1, data2]);
+
+  // If no data is available, show empty state
+  if (chartData.maxLength === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Altitude Comparison</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px] flex items-center justify-center">
+          <p className="text-muted-foreground">No data available</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -129,7 +151,7 @@ export function CombinedAltitudeChart({
             <XAxis 
               dataKey="time"
               type="number"
-              domain={[0, Math.max(data1.length - 1, data2?.length ? data2.length - 1 : 0)]}
+              domain={[0, chartData.maxLength - 1]}
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
@@ -162,28 +184,34 @@ export function CombinedAltitudeChart({
             />
 
             {/* First file data */}
-            <Area
-              type="monotone"
-              dataKey="altitude1"
-              name={`${fileName1} Altitude`}
-              stroke="#A855F7"
-              fillOpacity={1}
-              fill="url(#colorAlt1)"
-              isAnimationActive={false}
-              strokeWidth={2}
-            />
-            <Line
-              type="monotone"
-              dataKey={() => chartData.averages.avg1}
-              name={`${fileName1} Average`}
-              stroke="#A855F7"
-              strokeDasharray="5 5"
-              isAnimationActive={false}
-              dot={false}
-            />
+            {data1.length > 0 && (
+              <>
+                <Area
+                  type="monotone"
+                  dataKey="altitude1"
+                  name={`${fileName1} Altitude`}
+                  stroke="#A855F7"
+                  fillOpacity={1}
+                  fill="url(#colorAlt1)"
+                  isAnimationActive={false}
+                  strokeWidth={2}
+                />
+                {chartData.averages.avg1 !== undefined && (
+                  <Line
+                    type="monotone"
+                    dataKey={() => chartData.averages.avg1}
+                    name={`${fileName1} Average`}
+                    stroke="#A855F7"
+                    strokeDasharray="5 5"
+                    isAnimationActive={false}
+                    dot={false}
+                  />
+                )}
+              </>
+            )}
 
             {/* Second file data if available */}
-            {data2 && (
+            {data2.length > 0 && (
               <>
                 <Area
                   type="monotone"
@@ -195,15 +223,17 @@ export function CombinedAltitudeChart({
                   isAnimationActive={false}
                   strokeWidth={2}
                 />
-                <Line
-                  type="monotone"
-                  dataKey={() => chartData.averages.avg2}
-                  name={`${fileName2} Average`}
-                  stroke="#F97316"
-                  strokeDasharray="5 5"
-                  isAnimationActive={false}
-                  dot={false}
-                />
+                {chartData.averages.avg2 !== undefined && (
+                  <Line
+                    type="monotone"
+                    dataKey={() => chartData.averages.avg2}
+                    name={`${fileName2} Average`}
+                    stroke="#F97316"
+                    strokeDasharray="5 5"
+                    isAnimationActive={false}
+                    dot={false}
+                  />
+                )}
               </>
             )}
           </ComposedChart>
