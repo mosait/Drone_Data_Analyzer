@@ -1,4 +1,4 @@
-// src/components/shared/MetricsCard.tsx
+// src/components/shared/MetricsCards.tsx
 import { Card, CardContent } from '@/components/ui/card';
 import { FlightMetrics } from '@/api/types';
 
@@ -18,8 +18,10 @@ const MetricItem = ({ value, unit = '', otherValue, hasBothFiles }: MetricItemPr
   let comparison: ComparisonInfo | null = null;
 
   if (hasBothFiles && otherValue !== undefined) {
+    // Value is current file, otherValue is reference file
+    // So we calculate the difference from the reference (otherValue)
     const difference = value - otherValue;
-    const percentChange = ((difference) / otherValue) * 100;
+    const percentChange = otherValue !== 0 ? (difference / otherValue) * 100 : 0;
     comparison = { difference, percentChange };
   }
 
@@ -35,9 +37,10 @@ const MetricItem = ({ value, unit = '', otherValue, hasBothFiles }: MetricItemPr
         {formatValue(value)}{unit}
       </p>
       {comparison && (
-        <p className={`text-sm font-medium ${comparison.difference >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-          {comparison.difference >= 0 ? '↑' : '↓'} {Math.abs(comparison.difference).toFixed(1)}{unit} 
-          ({comparison.percentChange >= 0 ? '+' : ''}{comparison.percentChange.toFixed(1)}%)
+        <p className={`text-sm font-medium ${comparison.difference > 0 ? 'text-emerald-600' : comparison.difference < 0 ? 'text-red-600' : 'text-gray-500'}`}>
+          {/* Show down arrow for negative, up arrow for positive */}
+          {comparison.difference > 0 ? '↑' : comparison.difference < 0 ? '↓' : '→'} {Math.abs(comparison.difference).toFixed(1)}{unit} 
+          ({comparison.percentChange > 0 ? '+' : comparison.percentChange < 0 ? '-' : '±'}{Math.abs(comparison.percentChange).toFixed(1)}%)
         </p>
       )}
     </>

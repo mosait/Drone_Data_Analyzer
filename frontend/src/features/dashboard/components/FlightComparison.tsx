@@ -70,24 +70,24 @@ interface ComparisonMetricProps {
   unit?: string;
 }
 
-const ComparisonMetric = ({ 
+  const ComparisonMetric = ({ 
   label, 
   value1, 
   value2, 
   unit = ''
 }: ComparisonMetricProps) => {
   const difference = value2 - value1;
-  const percentChange = ((value2 - value1) / value1) * 100;
+  const percentChange = value1 !== 0 ? ((value2 - value1) / value1) * 100 : 0;
   
   const formatDifference = (isFirstFile: boolean) => {
     const diff = isFirstFile ? -difference : difference;
     const percent = isFirstFile ? -percentChange : percentChange;
-    const arrow = diff > 0 ? '↑' : '↓';
-    const signedDiff = diff > 0 ? `+${Math.abs(diff).toFixed(1)}` : `-${Math.abs(diff).toFixed(1)}`;
-    const signedPercent = percent > 0 ? `+${Math.abs(percent).toFixed(1)}` : `-${Math.abs(percent).toFixed(1)}`;
+    const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+    const signedDiff = diff > 0 ? `+${Math.abs(diff).toFixed(1)}` : diff < 0 ? `-${Math.abs(diff).toFixed(1)}` : '±0.0';
+    const signedPercent = percent > 0 ? `+${Math.abs(percent).toFixed(1)}` : percent < 0 ? `-${Math.abs(percent).toFixed(1)}` : '±0.0';
     
-    // Add color based on whether the number is positive or negative
-    const color = diff > 0 ? "text-emerald-600" : "text-red-600";
+    // Color: emerald for positive, red for negative, gray for zero
+    const color = diff > 0 ? "text-emerald-600" : diff < 0 ? "text-red-600" : "text-gray-500";
     
     return {
       arrow,
@@ -105,22 +105,18 @@ const ComparisonMetric = ({
           <p className="text-lg font-semibold">
             {value1.toFixed(1)}{unit}
           </p>
-          {difference !== 0 && (
-            <p className={`text-sm font-medium ${formatDifference(true).color}`}>
-              {formatDifference(true).arrow} {formatDifference(true).text}
-            </p>
-          )}
+          <p className={`text-sm font-medium ${formatDifference(true).color}`}>
+            {formatDifference(true).arrow} {formatDifference(true).text}
+          </p>
         </div>
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">File 2</p>
           <p className="text-lg font-semibold">
             {value2.toFixed(1)}{unit}
           </p>
-          {difference !== 0 && (
-            <p className={`text-sm font-medium ${formatDifference(false).color}`}>
-              {formatDifference(false).arrow} {formatDifference(false).text}
-            </p>
-          )}
+          <p className={`text-sm font-medium ${formatDifference(false).color}`}>
+            {formatDifference(false).arrow} {formatDifference(false).text}
+          </p>
         </div>
       </div>
     </div>
