@@ -1,4 +1,5 @@
 // src/features/analysis/components/charts/CombinedAltitudeChart.tsx
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ComposedChart,
@@ -61,6 +62,7 @@ export function CombinedAltitudeChart({
   fileName2,
   syncHover 
 }: CombinedChartProps) {
+  const [syncState, setSyncState] = useState<ChartSyncState | null>(null);
   const chartData = useMemo(() => {
     // Early exit if no data is available
     if (!data1.length && !data2.length) {
@@ -108,6 +110,10 @@ export function CombinedAltitudeChart({
     );
   }
 
+  const handleHover = (state: ChartSyncState | null) => {
+    setSyncState(state);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -115,27 +121,25 @@ export function CombinedAltitudeChart({
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
-            data={chartData.data}
-            margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
-            onMouseMove={(state: any) => {
-              if (syncHover && 
-                  typeof state?.activeTooltipIndex === 'number' &&
-                  typeof state?.chartX === 'number' &&
-                  typeof state?.chartY === 'number') {
-                syncHover.onHover({
-                  activeIndex: state.activeTooltipIndex,
-                  mouseX: state.chartX,
-                  mouseY: state.chartY
-                });
-              }
-            }}
-            onMouseLeave={() => {
-              if (syncHover) {
-                syncHover.onHover(null);
-              }
-            }}
-          >
+        <ComposedChart
+          data={chartData.data}
+          margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+          onMouseMove={(state: any) => {
+            if (syncHover &&
+                typeof state?.activeTooltipIndex === 'number' &&
+                typeof state?.chartX === 'number' &&
+                typeof state?.chartY === 'number') {
+              syncHover.onHover({
+                activeIndex: state.activeTooltipIndex,
+                mouseX: state.chartX,
+                mouseY: state.chartY,
+              });
+            }
+          }}
+          onMouseLeave={() => {
+            if (syncHover) syncHover.onHover(null);
+          }}
+        >
             <defs>
               <linearGradient id="colorAlt1" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#A855F7" stopOpacity={0.8}/>
@@ -177,6 +181,10 @@ export function CombinedAltitudeChart({
               content={CustomTooltip}
               cursor={{ stroke: '#666', strokeWidth: 1 }}
               active={syncHover?.activeTooltipIndex !== null}
+              position={{
+                x: syncHover?.syncState.mouseX,
+                y: syncHover?.syncState.mouseY,
+              }}
             />
             <Legend 
               verticalAlign="top"

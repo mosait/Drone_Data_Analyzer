@@ -107,25 +107,23 @@ export function CombinedRadarChart({
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
+          <ComposedChart
             data={chartData.data}
             margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
             onMouseMove={(state: any) => {
-              if (syncHover && 
+              if (syncHover &&
                   typeof state?.activeTooltipIndex === 'number' &&
                   typeof state?.chartX === 'number' &&
                   typeof state?.chartY === 'number') {
                 syncHover.onHover({
                   activeIndex: state.activeTooltipIndex,
                   mouseX: state.chartX,
-                  mouseY: state.chartY
+                  mouseY: state.chartY,
                 });
               }
             }}
             onMouseLeave={() => {
-              if (syncHover) {
-                syncHover.onHover(null);
-              }
+              if (syncHover) syncHover.onHover(null);
             }}
           >
             <defs>
@@ -165,11 +163,15 @@ export function CombinedRadarChart({
                 style: { fontSize: 12 }
               }}
             />
-            <Tooltip 
-              content={CustomTooltip}
-              cursor={{ stroke: '#666', strokeWidth: 1 }}
-              active={syncHover?.activeTooltipIndex !== null}
-            />
+          <Tooltip 
+            content={CustomTooltip}
+            cursor={{ stroke: '#666', strokeWidth: 1 }}
+            active={syncHover?.activeTooltipIndex !== null}
+            position={{
+              x: syncHover?.syncState.mouseX,
+              y: syncHover?.syncState.mouseY,
+            }}
+          />
             <Legend verticalAlign="top" height={36} />
 
             {/* First file data */}
