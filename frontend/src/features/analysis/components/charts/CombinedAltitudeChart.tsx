@@ -1,5 +1,4 @@
-// src/features/analysis/components/charts/CombinedAltitudeChart.tsx
-import { useState } from 'react';
+// CombinedAltitudeChart.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ComposedChart,
@@ -33,17 +32,17 @@ interface CombinedChartProps {
   };
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, index }: any) => {
   if (!active || !payload || !payload.length) return null;
   
   return (
     <div className="bg-background border rounded-lg p-3 shadow-lg">
-      <p className="text-sm font-medium mb-1">Data Point: {label}</p>
-      {payload.map((entry: any, index: number) => {
+      <p className="text-sm font-medium mb-1">Data Point: {index ?? label}</p>
+      {payload.map((entry: any, idx: number) => {
         if (!entry || entry.value === undefined) return null;
         return (
           <p 
-            key={index} 
+            key={idx} 
             className="text-sm" 
             style={{ color: entry.stroke }}
           >
@@ -62,9 +61,7 @@ export function CombinedAltitudeChart({
   fileName2,
   syncHover 
 }: CombinedChartProps) {
-  const [syncState, setSyncState] = useState<ChartSyncState | null>(null);
   const chartData = useMemo(() => {
-    // Early exit if no data is available
     if (!data1.length && !data2.length) {
       return {
         data: [],
@@ -80,7 +77,6 @@ export function CombinedAltitudeChart({
       altitude2: data2[i]?.gps?.altitude
     }));
 
-    // Calculate averages only if data exists
     const avg1 = data1.length > 0
       ? data1.reduce((sum, d) => sum + (d.gps?.altitude || 0), 0) / data1.length
       : undefined;
@@ -96,7 +92,6 @@ export function CombinedAltitudeChart({
     };
   }, [data1, data2]);
 
-  // If no data is available, show empty state
   if (chartData.maxLength === 0) {
     return (
       <Card>
@@ -110,10 +105,6 @@ export function CombinedAltitudeChart({
     );
   }
 
-  const handleHover = (state: ChartSyncState | null) => {
-    setSyncState(state);
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -121,25 +112,27 @@ export function CombinedAltitudeChart({
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          data={chartData.data}
-          margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
-          onMouseMove={(state: any) => {
-            if (syncHover &&
-                typeof state?.activeTooltipIndex === 'number' &&
-                typeof state?.chartX === 'number' &&
-                typeof state?.chartY === 'number') {
-              syncHover.onHover({
-                activeIndex: state.activeTooltipIndex,
-                mouseX: state.chartX,
-                mouseY: state.chartY,
-              });
-            }
-          }}
-          onMouseLeave={() => {
-            if (syncHover) syncHover.onHover(null);
-          }}
-        >
+          <ComposedChart 
+            data={chartData.data}
+            margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
+            onMouseMove={(state: any) => {
+              if (syncHover &&
+                  typeof state?.activeTooltipIndex === 'number' &&
+                  typeof state?.chartX === 'number' &&
+                  typeof state?.chartY === 'number') {
+                syncHover.onHover({
+                  activeIndex: state.activeTooltipIndex,
+                  mouseX: state.chartX,
+                  mouseY: state.chartY,
+                });
+              }
+            }}
+            onMouseLeave={() => {
+              if (syncHover) {
+                syncHover.onHover(null);
+              }
+            }}
+          >
             <defs>
               <linearGradient id="colorAlt1" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#A855F7" stopOpacity={0.8}/>
@@ -178,13 +171,27 @@ export function CombinedAltitudeChart({
               }}
             />
             <Tooltip 
-              content={CustomTooltip}
-              cursor={{ stroke: '#666', strokeWidth: 1 }}
-              active={syncHover?.activeTooltipIndex !== null}
-              position={{
-                x: syncHover?.syncState.mouseX,
-                y: syncHover?.syncState.mouseY,
+              content={(props) => (
+                <CustomTooltip 
+                  {...props} 
+                  index={syncHover?.activeTooltipIndex ?? null}
+                />
+              )}
+              cursor={{
+                stroke: '#666',
+                strokeWidth: 1,
+                strokeDasharray: '3 3'
               }}
+              active={Boolean(syncHover?.activeTooltipIndex !== null)}
+              position={{
+                x: syncHover?.syncState.mouseX ?? undefined,
+                y: syncHover?.syncState.mouseY ?? undefined
+              }}
+              coordinate={
+                typeof syncHover?.activeTooltipIndex === 'number' 
+                  ? { x: syncHover.activeTooltipIndex }
+                  : undefined
+              }
             />
             <Legend 
               verticalAlign="top"
@@ -203,6 +210,12 @@ export function CombinedAltitudeChart({
                   fill="url(#colorAlt1)"
                   isAnimationActive={false}
                   strokeWidth={2}
+                  activeDot={{ 
+                    r: 4,
+                    strokeWidth: 2,
+                    fill: "#A855F7",
+                    stroke: "#fff"
+                  }}
                 />
                 {chartData.averages.avg1 !== undefined && (
                   <Line
@@ -230,6 +243,12 @@ export function CombinedAltitudeChart({
                   fill="url(#colorAlt2)"
                   isAnimationActive={false}
                   strokeWidth={2}
+                  activeDot={{ 
+                    r: 4,
+                    strokeWidth: 2,
+                    fill: "#F97316",
+                    stroke: "#fff"
+                  }}
                 />
                 {chartData.averages.avg2 !== undefined && (
                   <Line

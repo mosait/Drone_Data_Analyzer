@@ -1,4 +1,4 @@
-// src/features/analysis/components/charts/CombinedRadarChart.tsx
+// CombinedRadarChart.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ComposedChart,
@@ -21,8 +21,8 @@ interface ChartSyncState {
 }
 
 interface CombinedChartProps {
-  data1?: DroneData[]; // Optional with default fallback
-  data2?: DroneData[]; // Optional with default fallback
+  data1?: DroneData[];
+  data2?: DroneData[];
   fileName1: string;
   fileName2?: string;
   syncHover?: {
@@ -32,17 +32,17 @@ interface CombinedChartProps {
   };
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload || payload.length === 0) return null;
+const CustomTooltip = ({ active, payload, label, index }: any) => {
+  if (!active || !payload || !payload.length) return null;
   
   return (
     <div className="bg-background border rounded-lg p-3 shadow-lg">
-      <p className="text-sm font-medium mb-1">Data Point: {label}</p>
-      {payload.map((entry: any, index: number) => {
+      <p className="text-sm font-medium mb-1">Data Point: {index ?? label}</p>
+      {payload.map((entry: any, idx: number) => {
         if (!entry || entry.value === undefined) return null;
         return (
           <p 
-            key={index} 
+            key={idx} 
             className="text-sm" 
             style={{ color: entry.stroke }}
           >
@@ -62,15 +62,13 @@ export function CombinedRadarChart({
   syncHover 
 }: CombinedChartProps) {
   const chartData = useMemo(() => {
-    // Calculate maximum length between datasets
     const maxLength = Math.max(data1.length, data2.length);
     const combinedData = Array.from({ length: maxLength }, (_, i) => ({
       time: i,
-      distance1: data1[i]?.radar?.distance ?? null, // Safely handle undefined radar data
+      distance1: data1[i]?.radar?.distance ?? null,
       distance2: data2[i]?.radar?.distance ?? null,
     }));
 
-    // Calculate averages if data exists
     const avg1 = data1.length > 0
       ? data1.reduce((sum, d) => sum + (d.radar?.distance ?? 0), 0) / data1.length
       : null;
@@ -86,7 +84,6 @@ export function CombinedRadarChart({
     };
   }, [data1, data2]);
 
-  // If no data is available, render an empty state
   if (chartData.maxLength === 0) {
     return (
       <Card>
@@ -99,6 +96,11 @@ export function CombinedRadarChart({
       </Card>
     );
   }
+
+  const getActiveIndex = () => {
+    if (!syncHover) return undefined;
+    return syncHover.activeTooltipIndex;
+  };
 
   return (
     <Card>
@@ -123,9 +125,11 @@ export function CombinedRadarChart({
               }
             }}
             onMouseLeave={() => {
-              if (syncHover) syncHover.onHover(null);
+              if (syncHover) {
+                syncHover.onHover(null);
+              }
             }}
-          >
+            >
             <defs>
               <linearGradient id="colorDist1" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#A855F7" stopOpacity={0.8} />
@@ -163,73 +167,102 @@ export function CombinedRadarChart({
                 style: { fontSize: 12 }
               }}
             />
-          <Tooltip 
-            content={CustomTooltip}
-            cursor={{ stroke: '#666', strokeWidth: 1 }}
-            active={syncHover?.activeTooltipIndex !== null}
-            position={{
-              x: syncHover?.syncState.mouseX,
-              y: syncHover?.syncState.mouseY,
-            }}
-          />
-            <Legend verticalAlign="top" height={36} />
-
-            {/* First file data */}
-            {data1.length > 0 && (
-              <>
-                <Area
-                  type="monotone"
-                  dataKey="distance1"
-                  name={`${fileName1} Distance`}
-                  stroke="#A855F7"
-                  fillOpacity={1}
-                  fill="url(#colorDist1)"
-                  isAnimationActive={false}
-                  strokeWidth={2}
+            <Tooltip 
+              content={(props) => (
+                <CustomTooltip 
+                  {...props} 
+                  index={syncHover?.activeTooltipIndex ?? null}
                 />
-                {chartData.averages.avg1 !== null && (
-                  <Line
+              )}
+              cursor={{
+                stroke: '#666',
+                strokeWidth: 1,
+                strokeDasharray: '3 3'
+              }}
+              active={Boolean(syncHover?.activeTooltipIndex !== null)}
+              position={{
+                x: syncHover?.syncState.mouseX ?? undefined,
+                y: syncHover?.syncState.mouseY ?? undefined
+              }}
+              coordinate={
+                typeof syncHover?.activeTooltipIndex === 'number' 
+                  ? { x: syncHover.activeTooltipIndex }
+                  : undefined
+              }
+            />
+              <Legend verticalAlign="top" height={36} />
+  
+              {/* First file data */}
+              {data1.length > 0 && (
+                <>
+                  <Area
                     type="monotone"
-                    dataKey={() => chartData.averages.avg1}
-                    name={`${fileName1} Average`}
+                    dataKey="distance1"
+                    name={`${fileName1} Distance`}
                     stroke="#A855F7"
-                    strokeDasharray="5 5"
+                    fillOpacity={1}
+                    fill="url(#colorDist1)"
                     isAnimationActive={false}
+                    strokeWidth={2}
                     dot={false}
+                    activeDot={{ 
+                      r: 6,
+                      strokeWidth: 2,
+                      fill: "#A855F7", // or "#F97316" for second dataset
+                      stroke: "#fff",
+                      strokeOpacity: 1
+                    }}
+                    connectNulls={true}
                   />
-                )}
-              </>
-            )}
-
-            {/* Second file data */}
-            {data2.length > 0 && (
-              <>
-                <Area
-                  type="monotone"
-                  dataKey="distance2"
-                  name={`${fileName2} Distance`}
-                  stroke="#F97316"
-                  fillOpacity={1}
-                  fill="url(#colorDist2)"
-                  isAnimationActive={false}
-                  strokeWidth={2}
-                />
-                {chartData.averages.avg2 !== null && (
-                  <Line
+                  {chartData.averages.avg1 !== null && (
+                    <Line
+                      type="monotone"
+                      dataKey={() => chartData.averages.avg1}
+                      name={`${fileName1} Average`}
+                      stroke="#A855F7"
+                      strokeDasharray="5 5"
+                      isAnimationActive={false}
+                      dot={false}
+                    />
+                  )}
+                </>
+              )}
+  
+              {/* Second file data */}
+              {data2.length > 0 && (
+                <>
+                  <Area
                     type="monotone"
-                    dataKey={() => chartData.averages.avg2}
-                    name={`${fileName2} Average`}
+                    dataKey="distance2"
+                    name={`${fileName2} Distance`}
                     stroke="#F97316"
-                    strokeDasharray="5 5"
+                    fillOpacity={1}
+                    fill="url(#colorDist2)"
                     isAnimationActive={false}
-                    dot={false}
+                    strokeWidth={2}
+                    activeDot={{ 
+                      r: 4,
+                      strokeWidth: 2,
+                      fill: "#F97316",
+                      stroke: "#fff"
+                    }}
                   />
-                )}
-              </>
-            )}
-          </ComposedChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
-}
+                  {chartData.averages.avg2 !== null && (
+                    <Line
+                      type="monotone"
+                      dataKey={() => chartData.averages.avg2}
+                      name={`${fileName2} Average`}
+                      stroke="#F97316"
+                      strokeDasharray="5 5"
+                      isAnimationActive={false}
+                      dot={false}
+                    />
+                  )}
+                </>
+              )}
+            </ComposedChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    );
+  }
