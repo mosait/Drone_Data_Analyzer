@@ -101,6 +101,9 @@ export function CombinedRadarChart({
     <Card>
       <CardHeader>
         <CardTitle>Radar Distance Comparison</CardTitle>
+        <p className="text-sm text-muted-foreground">
+            Shows the distance between the drone and detected objects in its surroundings in meters over time.
+        </p>
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">

@@ -109,6 +109,9 @@ export function CombinedAltitudeChart({
     <Card>
       <CardHeader>
         <CardTitle>Altitude Comparison</CardTitle>
+        <p className="text-sm text-muted-foreground">
+            Displays the drone's vertical distance from the ground in meters over time.
+        </p>
       </CardHeader>
       <CardContent className="h-[400px]">
         <ResponsiveContainer width="100%" height="100%">
