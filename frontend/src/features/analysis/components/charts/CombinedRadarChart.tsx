@@ -97,11 +97,6 @@ export function CombinedRadarChart({
     );
   }
 
-  const getActiveIndex = () => {
-    if (!syncHover) return undefined;
-    return syncHover.activeTooltipIndex;
-  };
-
   return (
     <Card>
       <CardHeader>

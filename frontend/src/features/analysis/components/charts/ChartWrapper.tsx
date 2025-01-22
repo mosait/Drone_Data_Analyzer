@@ -15,7 +15,6 @@ export const ChartWrapper = ({ children, onSync, syncState }: ChartWrapperProps)
   const chartRef = useRef<HTMLDivElement>(null);
   const lastSyncRef = useRef(syncState);
   const animationFrameRef = useRef<number | null>(null);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isHovering, setIsHovering] = useState(false);
 
   const handleMouseEnter = () => setIsHovering(true);
