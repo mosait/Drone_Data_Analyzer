@@ -204,15 +204,12 @@ export function CombinedRadarChart({
                     fill="url(#colorDist1)"
                     isAnimationActive={false}
                     strokeWidth={2}
-                    dot={false}
                     activeDot={{ 
-                      r: 6,
+                      r: 4,
                       strokeWidth: 2,
-                      fill: "#A855F7", // or "#F97316" for second dataset
-                      stroke: "#fff",
-                      strokeOpacity: 1
+                      fill: "#A855F7",
+                      stroke: "#fff"
                     }}
-                    connectNulls={true}
                   />
                   {chartData.averages.avg1 !== null && (
                     <Line
