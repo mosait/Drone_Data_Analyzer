@@ -67,49 +67,66 @@ export const ChartWrapper = ({ children, onSync, syncState }: ChartWrapperProps)
   }, [syncState.activeIndex, syncState.mouseX, syncState.mouseY, isHovering, getChartArea]);
 
   useEffect(() => {
-    if (!chartRef.current || !onSync || !isHovering) return;
-
+    if (!chartRef.current || !onSync) return;
+  
     const bounds = getChartBounds();
     if (!bounds) return;
-
+  
     const hasChanged =
       lastSyncRef.current.activeIndex !== syncState.activeIndex ||
       (syncState.activeIndex !== null && (
         Math.abs(lastSyncRef.current.mouseX - syncState.mouseX) > 1 ||
         Math.abs(lastSyncRef.current.mouseY - syncState.mouseY) > 1
       ));
-
+  
     if (!hasChanged) return;
-
+  
     lastSyncRef.current = syncState;
-
+  
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
     }
-
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    debounceTimeoutRef.current = setTimeout(() => {
-      animationFrameRef.current = requestAnimationFrame(() => {
-        if (syncState.activeIndex !== null) {
-          dispatchSyntheticEvent('mousemove', bounds);
-        } else {
-          dispatchSyntheticEvent('mouseleave', bounds);
+  
+    animationFrameRef.current = requestAnimationFrame(() => {
+      if (syncState.activeIndex !== null) {
+        dispatchSyntheticEvent('mousemove', bounds);
+      } else {
+        dispatchSyntheticEvent('mouseleave', bounds);
+      }
+    });
+  
+    // Ensure all charts sync even if the mouse is not actively on this chart
+    const siblingCharts = document.querySelectorAll('.chart-wrapper');
+    siblingCharts.forEach((chart) => {
+      if (chart !== chartRef.current) {
+        const siblingBounds = chart.querySelector('.recharts-wrapper')?.getBoundingClientRect();
+        if (siblingBounds && syncState.activeIndex !== null) {
+          const siblingEvent = new MouseEvent('mousemove', {
+            clientX: Math.min(
+              Math.max(siblingBounds.left + syncState.mouseX, siblingBounds.left),
+              siblingBounds.right
+            ),
+            clientY: Math.min(
+              Math.max(siblingBounds.top + syncState.mouseY, siblingBounds.top),
+              siblingBounds.bottom
+            ),
+            bubbles: true,
+            cancelable: true,
+            view: window,
+          });
+          const chartArea = chart.querySelector('.recharts-surface');
+          chartArea?.dispatchEvent(siblingEvent);
         }
-      });
-    }, 16);
-
+      }
+    });
+  
     return () => {
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
     };
-  }, [syncState, onSync, isHovering, dispatchSyntheticEvent, getChartBounds]);
+  }, [syncState, onSync, getChartBounds, dispatchSyntheticEvent]);
+  
 
   return (
     <div

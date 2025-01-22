@@ -116,17 +116,15 @@ export function CombinedAltitudeChart({
             data={chartData.data}
             margin={{ top: 20, right: 30, left: 0, bottom: 10 }}
             onMouseMove={(state: any) => {
-              if (syncHover &&
-                  typeof state?.activeTooltipIndex === 'number' &&
-                  typeof state?.chartX === 'number' &&
-                  typeof state?.chartY === 'number') {
+              if (syncHover && state?.activeTooltipIndex !== undefined) {
                 syncHover.onHover({
                   activeIndex: state.activeTooltipIndex,
-                  mouseX: state.chartX,
-                  mouseY: state.chartY,
+                  mouseX: state.chartX ?? 0,
+                  mouseY: state.chartY ?? 0,
                 });
               }
             }}
+            
             onMouseLeave={() => {
               if (syncHover) {
                 syncHover.onHover(null);
