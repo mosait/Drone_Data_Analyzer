@@ -3,57 +3,61 @@ flowchart TB
     %% Styling
     classDef frontendClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     classDef backendClass fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
-    classDef storageClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef toolClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef dataClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
 
-    %% Frontend Layer
-    subgraph Frontend["Frontend (React + Vite + TypeScript)"]
+    %% Frontend Components
+    subgraph Frontend["Frontend Layer"]
         direction TB
-        UI[/"User Interface"/]
-
-        subgraph FComponents["Frontend Components"]
-            direction TB
-            RC["React Components"]
-            SM["State Management (Redux)"]
-            APIService["API Service"]
+        UI["User Interface"]
+        Store["Zustand Store"]
+        API["API Client"]
+        
+        subgraph Views["Main Views"]
+            Dashboard["Dashboard View"]
+            DataTable["Data Table View"]
+            Analysis["Analysis View"]
         end
     end
 
-    %% Backend Layer
-    subgraph Backend["Backend (FastAPI Application)"]
+    %% Backend Components
+    subgraph Backend["Backend Layer"]
         direction TB
-        API[/"API Endpoints"/]
-
-        subgraph BComponents["Backend Components"]
-            direction TB
-            DM["Data Models"]
-            DB["Database (PostgreSQL)"]
-            FS["File Storage"]
+        Endpoints["FastAPI Endpoints"]
+        Processing["Data Processing"]
+        Validation["File Validation"]
+        
+        subgraph Storage["Storage"]
+            Files["File Storage"]
+            Mapping["File Mapping"]
         end
     end
 
-    %% Connections
-    UI --> RC
-    RC --> SM
-    RC --> APIService
+    %% Frontend Internal Flow
+    UI --> Views
+    Views --> Store
+    Store --> API
+    
+    %% Backend Internal Flow
+    Endpoints --> Validation
+    Validation --> Processing
+    Processing --> Storage
+    
+    %% Cross-Layer Communication
+    API <--> |"File Upload/\nData Retrieval"| Endpoints
+    
+    %% Main Data Operations
+    Views -- "1. File Selection" --> UI
+    UI -- "2. Upload Request" --> Store
+    Store -- "3. POST /upload" --> API
+    API -- "4. Process File" --> Endpoints
+    Endpoints -- "5. Store Data" --> Files
+    Files -- "6. Return Result" --> Endpoints
+    Endpoints -- "7. Send Response" --> API
+    API -- "8. Update State" --> Store
+    Store -- "9. Update UI" --> Views
 
-    SM --"State Updates"--> RC
-    SM --"State Queries"--> RC
-
-    APIService --"API Calls"--> API
-    API --"HTTP Responses"--> APIService
-
-    API --> DM
-    API --> DB
-    API --> FS
-
-    DM --"Uses Models"--> API
-    DB --"Stores Data"--> API
-    FS --"Handles Files"--> API
-
-    %% Adjusted Styling and Spacing
-    class Frontend,FComponents frontendClass
-    class Backend,BComponents backendClass
-    class UI,API toolClass
-    class DM,DB,FS storageClass
+    %% Apply Styles
+    class Frontend,Views frontendClass
+    class Backend,Storage backendClass
+    class Files,Mapping dataClass
 ```
