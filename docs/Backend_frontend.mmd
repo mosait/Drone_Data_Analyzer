@@ -13,6 +13,7 @@ flowchart TB
         API["API Client"]
         
         subgraph Views["Main Views"]
+            direction TB
             Dashboard["Dashboard View"]
             DataTable["Data Table View"]
             Analysis["Analysis View"]
@@ -23,10 +24,11 @@ flowchart TB
     subgraph Backend["Backend Layer"]
         direction TB
         Endpoints["FastAPI Endpoints"]
-        Processing["Data Processing"]
         Validation["File Validation"]
+        Processing["Data Processing"]
         
         subgraph Storage["Storage"]
+            direction TB
             Files["File Storage"]
             Mapping["File Mapping"]
         end
@@ -43,18 +45,18 @@ flowchart TB
     Processing --> Storage
     
     %% Cross-Layer Communication
-    API <--> |"File Upload/\nData Retrieval"| Endpoints
+    API <--> |"File Upload/Data Retrieval"| Endpoints
     
     %% Main Data Operations
-    Views -- "1. File Selection" --> UI
-    UI -- "2. Upload Request" --> Store
-    Store -- "3. POST /upload" --> API
-    API -- "4. Process File" --> Endpoints
-    Endpoints -- "5. Store Data" --> Files
-    Files -- "6. Return Result" --> Endpoints
-    Endpoints -- "7. Send Response" --> API
-    API -- "8. Update State" --> Store
-    Store -- "9. Update UI" --> Views
+    Views -- "1 File Selection" --> UI
+    UI -- "2 Upload Request" --> Store
+    Store -- "3 POST /upload" --> API
+    API -- "4 Process File" --> Endpoints
+    Endpoints -- "5 Store Data" --> Files
+    Files -- "6 Return Result" --> Endpoints
+    Endpoints -- "7 Send Response" --> API
+    API -- "8 Update State" --> Store
+    Store -- "9 Update UI" --> Views
 
     %% Apply Styles
     class Frontend,Views frontendClass
