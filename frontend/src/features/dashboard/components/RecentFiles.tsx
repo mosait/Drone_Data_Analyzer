@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { FileSlotDialog } from '@/components/shared/FileSlotDialog';
 import { api } from '@/api/endpoints';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 export const RecentFiles = () => {
   const { 
