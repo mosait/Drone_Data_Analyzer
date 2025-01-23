@@ -136,28 +136,28 @@
   .dark {
     /* Softer dark theme using grey instead of pure black */
     --background: 222.2 47.4% 11.2%;     /* Dark grey background */
-    --foreground: 210 40% 98%;
+    --foreground: 0 0% 100%;
  
     --card: 217.2 32.6% 17.5%;          /* Slightly lighter grey for cards */
-    --card-foreground: 210 40% 98%;
+    --card-foreground: 0 0% 100%
  
     --popover: 217.2 32.6% 17.5%;
-    --popover-foreground: 210 40% 98%;
+    --popover-foreground: 0 0% 100%;
  
     --primary: 217.2 91.2% 59.8%;        /* Keeping blue as primary */
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-foreground: 0 0% 100%;
  
     --secondary: 217.2 32.6% 17.5%;      /* Grey for secondary elements */
-    --secondary-foreground: 210 40% 98%;
+    --secondary-foreground: 0 0% 100%;
  
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 20.2% 90%;
  
     --accent: 217.2 91.2% 59.8%;         /* Blue accent */
-    --accent-foreground: 210 40% 98%;
+    --accent-foreground: 0 0% 100%;
  
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
  
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
