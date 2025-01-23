@@ -55,7 +55,7 @@ const Sidebar = () => {
                   group flex px-3 py-3 rounded-md transition-colors
                   ${isActive 
                     ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-neutral-200'
                   }
                 `}
               >
@@ -66,7 +66,7 @@ const Sidebar = () => {
                         h-full w-full transition-colors
                         ${isActive 
                           ? 'text-primary-foreground' 
-                          : 'text-muted-foreground group-hover:text-accent-foreground'
+                          : 'text-muted-foreground group-hover:text-neutral-200'
                         }
                       `}
                     />
@@ -77,7 +77,7 @@ const Sidebar = () => {
                       text-xs mt-1 transition-colors
                       ${isActive 
                         ? 'text-primary-foreground' 
-                        : 'text-muted-foreground group-hover:text-accent-foreground'
+                        : 'text-muted-foreground group-hover:text-neutral-200'
                       }
                     `}>
                       {item.description}

@@ -2,6 +2,7 @@
 .leaflet-container {
   background: #ffffff;
   font-family: inherit;
+  z-index: 1 !important;
 }
 
 .custom-div-icon, 

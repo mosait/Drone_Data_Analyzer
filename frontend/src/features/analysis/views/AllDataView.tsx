@@ -130,7 +130,7 @@ export function AllDataView({
       {/* Map Section */}
       <div 
         ref={mapContainerRef}
-        className="map-container relative z-[1]"
+        className="map-container"
       >
         <FlightMap 
           data1={visibleData1}
