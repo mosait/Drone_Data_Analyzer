@@ -24,7 +24,7 @@ Using Docker, run the following command in the root directory of the project:
 ```
 docker compose -p drone -f ./docker/docker-compose.yml up --build
 
-OR If it was already build you can start/stop the application with the following command:
+OR If it was already build you can start/stop the application with the following commands:
 
 docker compose -p drone stop
 docker compose -p drone start
